@@ -47,6 +47,8 @@ int main(int ac, char *av[]) {
     char buffer[100];
     int bytesRead = 0;
 
+    char message[] = "Welcome to the server! Please enter your password: \n";
+    send(connection, message, sizeof(message), 0);
     std::cout << "Welcome to the server! Please enter your password: \n";
 
     bytesRead = recv(connection, buffer, sizeof(buffer) - 1, 0);
@@ -66,7 +68,8 @@ int main(int ac, char *av[]) {
     int clientPassword = atoi(buffer);
 
     if (clientPassword == password) {
-      std::cout << "Password is correct! You are now connected to the server.\n";
+      const char *successMessage = "Password is correct! You are now connected to the server.\n";
+      send(connection, successMessage, strlen(successMessage), 0);
 
       while (true) {
         bytesRead = recv(connection, buffer, sizeof(buffer) - 1, 0);
@@ -93,8 +96,9 @@ int main(int ac, char *av[]) {
        // send(connection, response, sizeof(response), 0);
       }
     } else {
-      std::cout << "Password is incorrect! You are not connected to the server.\n";
-    }
+        const char *failureMessage = "Password is incorrect! You are not connected to the server.\n";
+        send(connection, failureMessage, strlen(failureMessage), 0);    
+      }
 
     close(connection);
   }
