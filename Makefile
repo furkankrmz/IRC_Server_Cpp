@@ -2,7 +2,7 @@ NAME = server
 CC = g++
 CFLAGS = -Wall -Wextra -Werror -std=c++98
 
-SRC =	server_with_passwd.cpp
+SRC =	main.cpp connection_functions.cpp socket_functions.cpp\
 
 OBJ =	$(SRC:.cpp=.o)
 
