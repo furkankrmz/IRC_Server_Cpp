@@ -1,79 +1,116 @@
-#include "networking.h"
+#include "ft_irc.hpp"
 
-int main(int ac, char *av[]) {
-  if (ac != 3) {
-    std::cout << "Usage: " << av[0] << " <port number> <password>\n";
-    exit(EXIT_FAILURE);
-  }
-
-  int portNumber = atoi(av[1]);
-  int password = atoi(av[2]);
-
-  int sockfd = createSocket();
-  bindSocket(sockfd, portNumber);
-  startListening(sockfd);
-
-  std::cout << "Listening on port " << portNumber << std::endl;
-
-  while (true) {
-    int connection = acceptConnection(sockfd);
-if (connection < 0) {
-      std::cout << "Failed to grab connection. errno: " << errno << std::endl;
-      exit(EXIT_FAILURE);
-    }
-
-    char buffer[100];
-    int bytesRead = 0;
-
-    char message[] = "Welcome to the server! Please enter your password: \n";
-    send(connection, message, sizeof(message), 0);
-    std::cout << "Welcome to the server! Please enter your password: \n";
-
-    bytesRead = recv(connection, buffer, sizeof(buffer) - 1, 0);
-    if (bytesRead == 0) {
-      break;
-    } else if (bytesRead == -1) {
-      if (errno == EINTR || errno == EAGAIN) {
-        continue;
-      } else {
-        std::cout << "Error receiving message from client. errno: " << errno << std::endl;
+int main(int ac, char *av[])
+{
+    if (ac != 3)
+    {
+        std::cout << "Usage: " << av[0] << " <port number> <password>\n";
         exit(EXIT_FAILURE);
-      }
     }
 
-    buffer[bytesRead] = '\0';
+    ft_irc irc;
+    irc.SetPortNumber(atoi(av[1]));
+    if (irc.GetPortNumber() < 1024 || irc.GetPortNumber() > 0xffff)
+    {
+        std::cerr << "Port Error!" << std::endl;
+        return (EXIT_FAILURE);
+    }
+    irc.SetServerPassword(av[2]);
+    irc.CreateSocket();
+    irc.BindSocket(irc.GetSockFD(), irc.GetPortNumber());
+    irc.StartListening(irc.GetSockFD());
 
-    int clientPassword = atoi(buffer);
+    std::cout << "Listening on port " << irc.GetPortNumber() << std::endl;
+    std::unordered_set<std::string> usedNicknames;
 
-    if (clientPassword == password) {
-      const char *successMessage = "Password is correct! You are now connected to the server.\n";
-      send(connection, successMessage, strlen(successMessage), 0);
+    std::vector<int> clientSockets;
+    fd_set readfds;
+    FD_ZERO(&readfds);
+    int temp = irc.GetSockFD();
+    FD_SET(temp, &readfds);
+    irc.SetSockFD(temp);
+    int maxfd = irc.GetSockFD(); // Keep track of the highest socket descriptor
 
-      while (true) {
-        bytesRead = recv(connection, buffer, sizeof(buffer) - 1, 0);
-        if (bytesRead == 0) {
-          break;
-        } else if (bytesRead == -1) {
-          if (errno == EINTR || errno == EAGAIN) {
-            continue;
-          } else {
-            std::cout << "Error receiving message from client. errno: " << errno << std::endl;
-            exit(EXIT_FAILURE);
-          }
+    while (true)
+    {
+        fd_set tmp_fds = readfds; // Create a temporary copy of the set
+        int activity = select(maxfd + 1, &tmp_fds, NULL, NULL, NULL);
+
+        if (activity < 0)
+        {
+            std::cout << "Error in select. errno: " << errno << std::endl;
+            exit(1);
         }
 
-        buffer[bytesRead] = '\0';
+        // Check for incoming connection on the main listening socket
+        if (FD_ISSET(irc.GetSockFD(), &tmp_fds))
+        {
+            int connection = irc.AcceptConnection(irc.GetSockFD());
+            // Send welcome message and prompt for password
+            const char *welcomeMessage = "Welcome to the server! Please enter your password: \n";
+            irc.SendMessage(connection, welcomeMessage);
+            irc.AuthenticateClient(connection, irc.GetServerPassword());
+            FD_SET(connection, &readfds); // Add the new connection to the set
+            if (connection > maxfd)
+            {
+                maxfd = connection; // Update maxfd if necessary
+            }
+        }
 
-        std::cout << "Client: " << buffer << std::endl;
+        // Check for data from existing client connections
+        for (int fd = irc.GetSockFD() + 1; fd <= maxfd; ++fd)
+        {
+            if (FD_ISSET(fd, &tmp_fds))
+            {
+                char buffer[100];
+                int bytesRead = recv(fd, buffer, sizeof(buffer) - 1, 0);
+                if (bytesRead <= 0)
+                {
+                    // Connection closed or error occurred
+                    std::cout << "Socket " << fd << " hung up" << std::endl;
+                    close(fd);
+                    FD_CLR(fd, &readfds); // Remove the closed socket from the set
+                }
+                else
+                {
+                    buffer[bytesRead] = '\0';
 
-      }
-    } else {
-        const char *failureMessage = "Password is incorrect! You are not connected to the server.\n";
-        send(connection, failureMessage, strlen(failureMessage), 0);    
-      }
-      
-    close(connection);
-  }
+                    if (strncmp(buffer, "NICK ", 5) == 0)
+                    {
+                        std::string newNickname = buffer + 5;
+                        irc.ChangeNickname(fd, newNickname, usedNicknames);
+                    }
+                    else if (strncmp(buffer, "NOTICE ", 7) == 0)
+                    {
+                        const char* notice_message = buffer + 7;
+                        for (int fd = irc.GetSockFD(); fd <= maxfd; ++fd) {
+                        irc.SendMessage(fd,notice_message);
+                        }  
+                    }
+                    else if (strncmp(buffer, "QUIT", 4) == 0)
+                    {
+                        std::cout << "Client on socket " << fd << " requested to quit." << std::endl;
+                        close(fd);
+                        FD_CLR(fd, &readfds); // Remove the closed socket from the set
+                    }
+                    else
+                    {
+                        std::cout << "Client[" << fd << "]: " << buffer << std::endl;
+                    }
+                }
+            }
+        }
+    }
 
-  close(sockfd);
+    // Close remaining sockets and clean up
+    for (int fd = irc.GetSockFD(); fd <= maxfd; ++fd)
+    {
+        if (FD_ISSET(fd, &readfds))
+        {
+            close(fd);
+        }
+    }
+    close(irc.GetSockFD());
+
+    return 0;
 }

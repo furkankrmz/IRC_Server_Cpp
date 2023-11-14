@@ -5,7 +5,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <poll.h>
 #include <cstdlib>
 #include <unistd.h>
 #include <sys/select.h>
@@ -60,7 +59,7 @@ int acceptConnection(int sockfd) {
   return connection;
 }
 
-// Function to change the nickname
+// Function to set the nickname
 void changeNickname(int connection, const std::string& newNickname, std::unordered_set<std::string>& usedNicknames) {
     if (usedNicknames.find(newNickname) != usedNicknames.end()) {
         const char *message = "Nickname is already in use. Please choose a different one.\n";
@@ -68,8 +67,8 @@ void changeNickname(int connection, const std::string& newNickname, std::unorder
     } else {
         const char *successMessage = "Nickname changed successfully!\n";
         send(connection, successMessage, strlen(successMessage), 0);
-        usedNicknames.erase(newNickname); // Remove old nickname from usedNicknames
-        usedNicknames.insert(newNickname); // Add new nickname to usedNicknames
+        usedNicknames.erase(newNickname);
+        usedNicknames.insert(newNickname);
     }
 }
 
@@ -77,7 +76,7 @@ void sendMessage(int sockfd, const char* message) {
     send(sockfd, message, strlen(message), 0);
 }
 
-// Function to authenticateClient
+// Function to authenticate password
 void authenticateClient(int clientSocket, int password) {
   const char* promptMessage = "Please enter your password: \n";
   sendMessage(clientSocket, promptMessage);
@@ -126,10 +125,6 @@ void authenticateClient(int clientSocket, int password) {
   sendMessage(clientSocket, successMessage);
   std::cout << "Client on socket " << clientSocket << " authenticated!\n";
 
-  // Unblock the client so it can now send messages
-  int flags = fcntl(clientSocket, F_GETFL, 0);
-  flags &= ~O_NONBLOCK;
-  fcntl(clientSocket, F_SETFL, flags);
 }
 
 
@@ -150,7 +145,7 @@ int main(int ac, char *av[]) {
   std::unordered_set<std::string> usedNicknames;
 
 
-  std::vector<int> clientSockets; // Keep track of connected client sockets
+  std::vector<int> clientSockets; 
   fd_set readfds;
   FD_ZERO(&readfds);
   FD_SET(sockfd, &readfds);
@@ -163,7 +158,7 @@ int main(int ac, char *av[]) {
 
     if (activity < 0) {
       std::cout << "Error in select. errno: " << errno << std::endl;
-      exit(EXIT_FAILURE);
+      exit(1);
     }
 
     // Check for incoming connection on the main listening socket
@@ -195,7 +190,12 @@ int main(int ac, char *av[]) {
           if (strncmp(buffer, "NICK ", 5) == 0) {
             std::string newNickname = buffer + 5;
             changeNickname(fd, newNickname, usedNicknames);
-          } else if (strncmp(buffer, "QUIT", 4) == 0) {
+          }else if(strncmp(buffer,"NOTICE ", 7) == 0){
+              const char* notice_message = buffer + 7;
+              for (int fd = sockfd; fd <= maxfd; ++fd) {
+                sendMessage(fd,notice_message);
+              }
+          }else if (strncmp(buffer, "QUIT", 4) == 0) {
               std::cout << "Client on socket " << fd << " requested to quit." << std::endl;
               close(fd);
               FD_CLR(fd, &readfds); // Remove the closed socket from the set
