@@ -88,82 +88,81 @@ int ft_irc::AcceptConnection(int sockfd)
   return connection;
 }
 
-// Function to set the nickname
-void ft_irc::NICK(int connection, const std::string &newNickname)
-{
-  static std::unordered_set<std::string> usedNicknames;
-  if (usedNicknames.find(newNickname) != usedNicknames.end())
-  {
-    const char *message = "Nickname is already in use. Please choose a different one.\n";
-    send(connection, message, strlen(message), 0);
-  }
-  else
-  {
-    const char *successMessage = "Nickname changed successfully!\n";
-    send(connection, successMessage, strlen(successMessage), 0);
-    usedNicknames.erase(newNickname);
-    usedNicknames.insert(newNickname);
-  }
-}
 
 void ft_irc::SendMessage(int sockfd, const char *message)
 {
   send(sockfd, message, strlen(message), 0);
 }
 
-// Function to authenticate password
-void ft_irc::AuthenticateClient(int clientSocket, std::string password)
+void ft_irc::Welcome(int sockfd, std::string password)
 {
-  const char *promptMessage = "Please enter your password: \n";
-  SendMessage(clientSocket, promptMessage);
+  const char *promptMessage = "\033[1;35mWelcome to the server! \033[1;0m \n";
+  SendMessage(sockfd, promptMessage);
+  promptMessage = "\033[1;35mPlease login to use chat. Use HELP command to learn how to login. \033[1;0m \n";
+  SendMessage(sockfd, promptMessage);
+}
 
-  char buffer[8];
-  int bytesRead = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
-  if (bytesRead <= 0)
-  {
-    // Connection closed or error occurred
-    std::cout << "Socket " << clientSocket << " hung up" << std::endl;
-    close(clientSocket);
+void ft_irc::HELP(int sockfd, const std::vector<std::string>& args) {
+  if (args.size() != 1) {
+    const char *invalidMessage = "\033[1;31mIncorrect use of command! Correct usage: HELP\033[1;0m\n";
+    SendMessage(sockfd, invalidMessage);
     return;
   }
-  buffer[bytesRead] = '\0';
-
-  int attempts = 3; // Number of password entry attempts
-  std::cout << buffer << std::endl;
-  std::string clientPassword = (std::string)buffer;
-  std::cout << clientPassword << std::endl;
-  while (clientPassword != password && attempts > 0)
-  {
-    const char *invalidMessage = "Invalid password! Please try again.\n";
-    SendMessage(clientSocket, invalidMessage);
-
-    --attempts;
-
-    // Prompt for password again
-    SendMessage(clientSocket, promptMessage);
-    bytesRead = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
-    if (bytesRead <= 0)
-    {
-      // Connection closed or error occurred
-      std::cout << "Socket " << clientSocket << " hung up" << std::endl;
-      close(clientSocket);
-      return;
-    }
-    buffer[bytesRead] = '\0';
-    clientPassword = atoi(buffer);
+  if (args[0] == "HELP") {
+    const char *promptMessage = "\033[1;32mSTEP 1: PASS \033[1;0m\n";
+    SendMessage(sockfd, promptMessage);
+    promptMessage = "    Use PASS command to set a password. e.g: PASS <server password>\n";
+    SendMessage(sockfd, promptMessage);
+    promptMessage = "\033[1;32mSTEP 2: NICK \033[1;0m\n";
+    SendMessage(sockfd, promptMessage);
+    promptMessage = "    Use NICK command to set a nickname. e.g: NICK <nickname> \n";
+    SendMessage(sockfd, promptMessage);
+    promptMessage = "\033[1;32mSTEP 3: USER \033[1;0m\n";
+    SendMessage(sockfd, promptMessage);
+    promptMessage = "    Use USER command to register your username and fullname.e.g: USER <username> * * :<fullname> \n";
+    SendMessage(sockfd, promptMessage);
   }
-
+}
+// Function to authenticate password
+void ft_irc::PASS(int clientSocket, const std::vector<std::string>& args)
+{
+  if (args.size() != 2) {
+    const char *invalidMessage = "\033[1;31mIncorrect use of command! Correct usage: PASS <server password>\033[1;0m\n";
+    SendMessage(clientSocket, invalidMessage);
+    return;
+  }
+  std::string clientPassword = args[1];
+  std::cout << clientPassword << std::endl;
   if (clientPassword != password)
   {
-    // All attempts exhausted, disconnect the client
-    const char *disconnectMessage = "Max password attempts reached. Disconnecting.\n";
-    SendMessage(clientSocket, disconnectMessage);
-    close(clientSocket);
+    const char *invalidMessage = "\033[1;31mInvalid password! Please try again.\033[1;0m\n";
+    SendMessage(clientSocket, invalidMessage);
+  }
+  else {
+    const char *successMessage = "\033[1;32mClient authenticated!\033[1;0m\n";
+    SendMessage(clientSocket, successMessage);
+    std::cout << "\033[1;32mClient on socket " << clientSocket << " authenticated!\033[1;0m\n";
+  }
+}
+
+// Function to set the nickname
+void ft_irc::NICK(int connection, const std::vector<std::string>& args)
+{
+  if (args.size() != 2) {
+    const char *invalidMessage = "\033[1;31mIncorrect use of command! Correct usage: NICK <nickname>\033[1;0m\n";
+    SendMessage(connection, invalidMessage);
     return;
   }
-
-  // Password is valid, so the client is authenticated
-  const char *successMessage = "Client authenticated!\n";
-  SendMessage(clientSocket, successMessage);
-  std::cout << "Client on socket " << clientSocket << " authenticated!\n";
+  static std::unordered_set<std::string> usedNicknames;
+  if (usedNicknames.find(args[1]) != usedNicknames.end())
+  {
+    const char *message = "\033[1;31mNickname is already in use. Please choose a different one.\033[1;0m\n";
+    send(connection, message, strlen(message), 0);
+  }
+  else
+  {
+    const char *successMessage = "\033[1;32mNickname changed successfully!\033[1;0m\n";
+    send(connection, successMessage, strlen(successMessage), 0);
+    usedNicknames.insert(args[1]);
+  }
 }

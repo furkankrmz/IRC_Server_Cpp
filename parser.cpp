@@ -3,9 +3,10 @@
 std::vector<std::string> parse(std::string line) {
   size_t iterator = 0;
   size_t start = 0;
-  std::cout << "line " << line << std::endl; 
+  size_t length = line.find_first_of('\n');
   std::vector<std::string> args;
-  while (iterator < line.length()) {
+
+  while (iterator < length) {
     while (line[iterator] == ' ' || line[iterator] == '\t') {
       iterator++;
     }
@@ -16,16 +17,14 @@ std::vector<std::string> parse(std::string line) {
         iterator++;
       }
       args.push_back(line.substr(start, (iterator - start)));
-      std::cout << "args " << line.substr(start, (iterator - start)) << std::endl;
       iterator++;
       continue;
     }
     start = iterator;
-    while (line[iterator] != ' ' && line[iterator] != '\t' && line[iterator] != '\0') {
+    while (line[iterator] != ' ' && line[iterator] != '\t' && line[iterator] != '\n' && line[iterator] != '\0') {
       iterator++;
     }
     args.push_back(line.substr(start, (iterator - start)));
-    std::cout << "args  " << line.substr(start, (iterator - start)) << std::endl;
   }
   return (args);
 }

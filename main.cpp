@@ -46,9 +46,7 @@ int main(int ac, char *av[])
         {
             int connection = irc.AcceptConnection(irc.GetSockFD());
             // Send welcome message and prompt for password
-            const char *welcomeMessage = "Welcome to the server! Please enter your password: \n";
-            irc.SendMessage(connection, welcomeMessage);
-            irc.AuthenticateClient(connection, irc.GetServerPassword());
+            irc.Welcome(connection, irc.GetServerPassword());
             FD_SET(connection, &readfds); // Add the new connection to the set
             if (connection > maxfd)
             {
@@ -82,11 +80,12 @@ int main(int ac, char *av[])
                     }
                     std::vector<std::string> args = parse(line);
 
-                    if (strncmp(buffer, "NICK ", 5) == 0)
-                    {
-                        std::string newNickname = buffer + 5;
-                        irc.NICK(fd, newNickname);
-                    }
+                    if (strncmp(buffer, "HELP", 4) == 0)
+                        irc.HELP(fd, args);
+                    if (strncmp(buffer, "PASS", 4) == 0)
+                        irc.PASS(fd, args);
+                    else if (strncmp(buffer, "NICK ", 5) == 0)
+                        irc.NICK(fd, args);
                     else if (strncmp(buffer, "NOTICE ", 7) == 0)
                     {
                         const char* notice_message = buffer + 7;
@@ -96,7 +95,7 @@ int main(int ac, char *av[])
                     }
                     else if (strncmp(buffer, "QUIT", 4) == 0)
                     {
-                        std::cout << "Client on socket " << fd << " requested to quit." << std::endl;
+                        std::cout << "\033[1;33mClient on socket " << fd << " requested to quit.\033[1;0m" << std::endl;
                         close(fd);
                         FD_CLR(fd, &readfds); // Remove the closed socket from the set
                     }

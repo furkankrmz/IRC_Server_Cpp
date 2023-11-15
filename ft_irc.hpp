@@ -34,9 +34,11 @@ public:
     void BindSocket(int sockfd, int portNumber);
     void StartListening(int sockfd);
     int AcceptConnection(int sockfd);
-    void NICK(int sockfd, const std::string &newNickname);
     void SendMessage(int sockfd, const char *message);
-    void AuthenticateClient(int sockfd, std::string password);
+    void Welcome(int sockfd, std::string password);
+    void HELP(int sockfd, const std::vector<std::string>& args);
+    void PASS(int sockfd, const std::vector<std::string>& args);
+    void NICK(int sockfd, const std::vector<std::string>& args);
 	void USER();
 };
 
