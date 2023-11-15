@@ -1,4 +1,5 @@
 #include "ft_irc.hpp"
+#include "command_handler.hpp"
 
 int main(int ac, char *av[])
 {
@@ -9,6 +10,8 @@ int main(int ac, char *av[])
     }
 
     ft_irc irc;
+    commandHandler command;
+    command.initialize();
     irc.SetPortNumber(atoi(av[1]));
     if (irc.GetPortNumber() < 1024 || irc.GetPortNumber() > 0xffff)
     {
@@ -46,7 +49,7 @@ int main(int ac, char *av[])
         {
             int connection = irc.AcceptConnection(irc.GetSockFD());
             // Send welcome message and prompt for password
-            irc.Welcome(connection, irc.GetServerPassword());
+            irc.Welcome(connection);
             FD_SET(connection, &readfds); // Add the new connection to the set
             if (connection > maxfd)
             {
@@ -80,29 +83,25 @@ int main(int ac, char *av[])
                     }
                     std::vector<std::string> args = parse(line);
 
-                    if (strncmp(buffer, "HELP", 4) == 0)
-                        irc.HELP(fd, args);
-                    if (strncmp(buffer, "PASS", 4) == 0)
-                        irc.PASS(fd, args);
-                    else if (strncmp(buffer, "NICK ", 5) == 0)
-                        irc.NICK(fd, args);
-                    else if (strncmp(buffer, "NOTICE ", 7) == 0)
-                    {
-                        const char* notice_message = buffer + 7;
-                        for (int fd = irc.GetSockFD(); fd <= maxfd; ++fd) {
-                            irc.SendMessage(fd,notice_message);
-                        }  
-                    }
-                    else if (strncmp(buffer, "QUIT", 4) == 0)
+                    command.command_handler(fd, args, irc);
+                    // if (strncmp(buffer, "NOTICE ", 7) == 0)
+                    // {
+                    //     const char* notice_message = buffer + 7;
+                    //     for (int fd = irc.GetSockFD(); fd <= maxfd; ++fd) {
+                    //         irc.SendMessage(fd,notice_message);
+                    //     }  
+                    // }
+                    // else 
+                    if (strncmp(buffer, "QUIT", 4) == 0)
                     {
                         std::cout << "\033[1;33mClient on socket " << fd << " requested to quit.\033[1;0m" << std::endl;
                         close(fd);
                         FD_CLR(fd, &readfds); // Remove the closed socket from the set
                     }
-                    else
-                    {
-                        std::cout << "Client[" << fd << "]: " << buffer << std::endl;
-                    }
+                    // else
+                    // {
+                    //     std::cout << "Client[" << fd << "]: " << buffer << std::endl;
+                    // }
                 }
             }
         }

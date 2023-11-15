@@ -11,8 +11,10 @@
 #include <unistd.h>
 #include <sys/select.h>
 #include <fcntl.h>
+#include <map>
+#include <unordered_map> 
 
-typedef void (*command)(int, const std::vector<std::string>&);
+#include "user.hpp"
 
 class ft_irc
 {
@@ -20,6 +22,8 @@ private:
     int port_number;
     std::string password;
     int sock_fd;
+    std::map<int, User> users;
+    std::unordered_map<int, std::string> connectionNicknameMap;
 
 public:
     ft_irc();
@@ -35,11 +39,13 @@ public:
     void StartListening(int sockfd);
     int AcceptConnection(int sockfd);
     void SendMessage(int sockfd, const char *message);
-    void Welcome(int sockfd, std::string password);
-    void HELP(int sockfd, const std::vector<std::string>& args);
+    void SetNicknameForConnection(int connection, const std::string& nickname);
+    void Welcome(int sockfd);
+    void HELP(int sockfd);
     void PASS(int sockfd, const std::vector<std::string>& args);
     void NICK(int sockfd, const std::vector<std::string>& args);
-	void USER();
+	void USER(int connection, const std::vector<std::string>& args);
+    //void PRIVMSG(int connection, const std::vector<std::string>& args);
 };
 
 std::vector<std::string> parse(std::string);
