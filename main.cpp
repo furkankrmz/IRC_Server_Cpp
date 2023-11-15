@@ -21,7 +21,6 @@ int main(int ac, char *av[])
     irc.StartListening(irc.GetSockFD());
 
     std::cout << "Listening on port " << irc.GetPortNumber() << std::endl;
-    std::unordered_set<std::string> usedNicknames;
 
     std::vector<int> clientSockets;
     fd_set readfds;
@@ -74,17 +73,25 @@ int main(int ac, char *av[])
                 else
                 {
                     buffer[bytesRead] = '\0';
+                    int i = -1;
+                    std::string line;
+                    std::string character;
+                    while (buffer[++i] != '\0') {
+                        character = buffer[i];
+                        line.append(character);
+                    }
+                    std::vector<std::string> args = parse(line);
 
                     if (strncmp(buffer, "NICK ", 5) == 0)
                     {
                         std::string newNickname = buffer + 5;
-                        irc.ChangeNickname(fd, newNickname, usedNicknames);
+                        irc.NICK(fd, newNickname);
                     }
                     else if (strncmp(buffer, "NOTICE ", 7) == 0)
                     {
                         const char* notice_message = buffer + 7;
                         for (int fd = irc.GetSockFD(); fd <= maxfd; ++fd) {
-                        irc.SendMessage(fd,notice_message);
+                            irc.SendMessage(fd,notice_message);
                         }  
                     }
                     else if (strncmp(buffer, "QUIT", 4) == 0)

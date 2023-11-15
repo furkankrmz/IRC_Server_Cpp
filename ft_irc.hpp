@@ -12,6 +12,8 @@
 #include <sys/select.h>
 #include <fcntl.h>
 
+typedef void (*command)(int, const std::vector<std::string>&);
+
 class ft_irc
 {
 private:
@@ -32,7 +34,10 @@ public:
     void BindSocket(int sockfd, int portNumber);
     void StartListening(int sockfd);
     int AcceptConnection(int sockfd);
-    void ChangeNickname(int connection, const std::string &newNickname, std::unordered_set<std::string> &usedNicknames);
+    void NICK(int sockfd, const std::string &newNickname);
     void SendMessage(int sockfd, const char *message);
-    void AuthenticateClient(int clientSocket, std::string password);
+    void AuthenticateClient(int sockfd, std::string password);
+	void USER();
 };
+
+std::vector<std::string> parse(std::string);

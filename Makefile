@@ -2,7 +2,7 @@ NAME = server
 CC = g++
 CFLAGS = -Wall -Wextra -Werror -std=c++98
 
-SRC =	main.cpp ft_irc.cpp \
+SRC =	main.cpp ft_irc.cpp parser.cpp\
 
 OBJ =	$(SRC:.cpp=.o)
 

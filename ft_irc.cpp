@@ -89,8 +89,9 @@ int ft_irc::AcceptConnection(int sockfd)
 }
 
 // Function to set the nickname
-void ft_irc::ChangeNickname(int connection, const std::string &newNickname, std::unordered_set<std::string> &usedNicknames)
+void ft_irc::NICK(int connection, const std::string &newNickname)
 {
+  static std::unordered_set<std::string> usedNicknames;
   if (usedNicknames.find(newNickname) != usedNicknames.end())
   {
     const char *message = "Nickname is already in use. Please choose a different one.\n";
