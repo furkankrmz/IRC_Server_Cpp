@@ -1,23 +1,28 @@
 #include "ft_irc.hpp"
 
 ft_irc::ft_irc(/* args */) {
-  int port_number = 0;
-  std::string password = "";
-  int sock_fd = -1;
-  (void)sock_fd;
-  (void)port_number;
+  port_number = 0;
+  password = "";
+  operator_password = "kedi172";
+  sock_fd = -1;
 };
+
 ft_irc::~ft_irc(){};
 
 void ft_irc::SetPortNumber(int port_number) {
   this->port_number = port_number;
 };
+
 int ft_irc::GetPortNumber() { return this->port_number; };
+
 void ft_irc::SetServerPassword(std::string password) {
   this->password = password;
 };
+
 std::string ft_irc::GetServerPassword() { return this->password; };
+
 void ft_irc::SetSockFD(int sock_fd) { this->sock_fd = sock_fd; };
+
 int ft_irc::GetSockFD() { return this->sock_fd; };
 
 // Function to create a socket
@@ -173,6 +178,7 @@ void ft_irc::OPER(int sockfd, const std::vector<std::string> &args) {
   if (args[2] != operator_password) {
     const char *invalidMessage = "\033[1;31mIncorrect password\033[1;0m\r\n";
     SendMessage(sockfd, invalidMessage);
+    return;
   }
   std::map<int, User>::iterator it = users.begin();
   while (it != users.end()) {
