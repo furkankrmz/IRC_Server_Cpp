@@ -133,10 +133,6 @@ void ft_irc::PASS(int clientSocket, const std::vector<std::string> &args) {
   }
 }
 
-void ft_irc::SetNicknameForConnection(int connection, const std::string &nickname) {
-  connectionNicknameMap[connection] = nickname;
-}
-
 void ft_irc::NICK(int connection, const std::vector<std::string> &args) {
   if (args.size() != 2) {
     const char *invalidMessage =
@@ -160,11 +156,32 @@ void ft_irc::NICK(int connection, const std::vector<std::string> &args) {
     SendMessage(connection, successMessage);
     usedNicknames.erase(oldNickname);
     usedNicknames.insert(newNickname);
-
-    SetNicknameForConnection(connection, newNickname);
+    std::map<int, User>::iterator it = users.find(connection);
+    it->second.SetNickname(newNickname);
   }
 }
 
+void ft_irc::PRIVMSG(int connection, const std::vector<std::string>& args){
+  if (args.size() < 3) {
+    const char *invalidMessage =
+        "\033[1;31mIncorrect use of command! Correct usage: PRIVMSG <nickname> "
+        "<message>\033[1;0m\n";
+    SendMessage(connection, invalidMessage);
+    return;
+  }
+  std::string nick = args[1];
+  const char* p_message = args[2].c_str();
+  std::map<int, User>::iterator it = users.begin();
+  while (it != users.end()) {
+    if (it->second.GetNickname() == nick) {
+      SendMessage(it->first, p_message);
+      return;
+    }
+    it++;
+  }
+  const char *invalidMessage = "\033[1;31mUser not found!\033[1;0m\n";
+  SendMessage(connection, invalidMessage);
+}
 void ft_irc::USER(int sockfd, const std::vector<std::string> &args) {
   std::map<int, User>::iterator it = users.find(sockfd);
   if (!it->second.GetUsr()) {
@@ -179,6 +196,4 @@ void ft_irc::USER(int sockfd, const std::vector<std::string> &args) {
   }
 }
 
-// void PRIVMSG(int connection, const std::vector<std::string>& args){
 
-//}
