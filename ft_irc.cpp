@@ -115,6 +115,12 @@ User ft_irc::findUserByUsername(std::string username) {
   throw ("User not found");
 }
 
+void ft_irc::removeUser(int sockfd) {
+  std::map<int, User>::iterator it = users.find(sockfd);
+  if (it != users.end())
+    users.erase(sockfd);
+}
+
 void ft_irc::Welcome(int sockfd) {
   const char *promptMessage = "\033[1;35mWelcome to the server! \033[1;0m \r\n";
   SendMessage(sockfd, promptMessage);

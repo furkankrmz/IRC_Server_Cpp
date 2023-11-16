@@ -49,6 +49,7 @@ public:
     User findUserBySocket(int sockfd);
     User findUserByNickname(std::string nickname);
     User findUserByUsername(std::string username);
+    void removeUser(int sockfd);
     void Welcome(int sockfd);
     void HELP(int sockfd);
     void PASS(int sockfd, const std::vector<std::string>& args);

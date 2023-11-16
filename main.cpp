@@ -69,6 +69,7 @@ int main(int ac, char *av[])
                     // Connection closed or error occurred
                     std::cout << "Socket " << fd << " hung up" << std::endl;
                     close(fd);
+                    irc.removeUser(fd);
                     FD_CLR(fd, &readfds); // Remove the closed socket from the set
                 }
                 else
@@ -88,12 +89,9 @@ int main(int ac, char *av[])
                     {
                         std::cout << "\033[1;33mClient on socket " << fd << " requested to quit.\033[1;0m" << std::endl;
                         close(fd);
+                        irc.removeUser(fd);
                         FD_CLR(fd, &readfds); // Remove the closed socket from the set
                     }
-                    // else
-                    // {
-                    //     std::cout << "Client[" << fd << "]: " << buffer << std::endl;
-                    // }
                 }
             }
         }
