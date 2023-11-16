@@ -173,20 +173,19 @@ void ft_irc::PASS(int clientSocket, const std::vector<std::string> &args) {
 }
 
 void ft_irc::NICK(int connection, const std::vector<std::string> &args) {
-  static std::unordered_set<std::string> usedNicknames;
-  std::string oldNickname = connectionNicknameMap[connection];
+  std::string oldNickname = findUserBySocket(connection).GetNickname();
   std::string newNickname = args[1];
-  if (usedNicknames.find(args[1]) != usedNicknames.end()) {
+  try {
+    findUserByNickname(newNickname);
     const char *message =
         "\033[1;31mNickname is already in use. Please choose a different "
         "one.\033[1;0m\r\n";
     send(connection, message, strlen(message), 0);
-  } else {
+  }
+  catch(...) {
     const char *successMessage =
         "\033[1;32mNickname changed successfully!\033[1;0m\r\n";
     SendMessage(connection, successMessage);
-    usedNicknames.erase(oldNickname);
-    usedNicknames.insert(newNickname);
     std::map<int, User>::iterator it = users.find(connection);
     it->second.SetNickname(newNickname);
     it->second.SetNick(true);

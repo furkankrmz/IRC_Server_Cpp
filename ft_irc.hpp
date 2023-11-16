@@ -29,8 +29,6 @@ private:
     int sock_fd;
     std::map<int, User> users;
     std::map<std::string, Channel> channels;
-    std::unordered_map<int, std::string> connectionNicknameMap;
-    std::map<std::string, int> nicknameConnectionMap;
 
 public:
     ft_irc();
