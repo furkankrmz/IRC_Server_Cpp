@@ -183,10 +183,15 @@ void ft_irc::NICK(int connection, const std::vector<std::string> &args) {
 
 void ft_irc::PRIVMSG(int connection, const std::vector<std::string>& args){
   std::string nick = args[1];
-  const char* p_message = args[2].c_str();
+  std::string msg = args[2] + "\n";
+  const char* p_message = msg.c_str();
   try {
-    User usr = findUserByNickname(nick);
-    SendMessage(usr.GetSocket(), p_message);
+    User target = findUserByNickname(nick);
+    User sender = findUserBySocket(connection);
+    std::string senderinfo = sender.GetNickname() + ": ";
+    const char* sndr = senderinfo.c_str();
+    SendMessage(target.GetSocket(), sndr);
+    SendMessage(target.GetSocket(), p_message);
   }
   catch(const std::exception& e) {
     const char *invalidMessage = "\033[1;31mUser not found!\033[1;0m\r\n";
