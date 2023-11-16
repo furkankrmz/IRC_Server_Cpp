@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <map>
 #include <unordered_map> 
+#include <exception>
 
 #include "user.hpp"
 

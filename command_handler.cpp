@@ -26,7 +26,7 @@ void commandHandler::PASS(int sockfd, const std::vector<std::string>& args, ft_i
             else
                 irc.PASS(sockfd, args);
         }
-        catch(const std::exception& e) {
+        catch(...) {
             const char *invalidMessage = "\033[1;33mUser not found!\033[1;0m\r\n";
             irc.SendMessage(sockfd, invalidMessage);
         }
@@ -68,7 +68,7 @@ void commandHandler::USER(int sockfd, const std::vector<std::string>& args, ft_i
         else
             irc.USER(sockfd, args);
     }
-    catch(const std::exception& e) {
+    catch(...) {
         const char *invalidMessage = "\033[1;33mUser not found!\033[1;0m\r\n";
         irc.SendMessage(sockfd, invalidMessage);
     }
@@ -90,7 +90,7 @@ void commandHandler::OPER(int sockfd, const std::vector<std::string>& args, ft_i
             else
                 irc.OPER(sockfd, args);
         }
-        catch(const std::exception& e) {
+        catch(...) {
             const char *invalidMessage = "\033[1;33mUser not found!\033[1;0m\r\n";
             irc.SendMessage(sockfd, invalidMessage);
         }
@@ -115,7 +115,7 @@ void commandHandler::PRIVMSG(int sockfd, const std::vector<std::string>& args, f
             else
                 irc.PRIVMSG(sockfd, args);
         }
-        catch(const std::exception& e) {
+        catch(...) {
             const char *invalidMessage = "\033[1;33mUser not found!\033[1;0m\r\n";
             irc.SendMessage(sockfd, invalidMessage);
         }
