@@ -2,7 +2,7 @@ NAME = ircserv
 CC = c++
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 
-SRC =	main.cpp ft_irc.cpp parser.cpp command_handler.cpp user.cpp\
+SRC =	main.cpp ft_irc.cpp parser.cpp command_handler.cpp user.cpp channel.cpp\
 
 OBJ =	$(SRC:.cpp=.o)
 

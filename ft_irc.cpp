@@ -5,6 +5,12 @@ ft_irc::ft_irc(/* args */) {
   password = "";
   operator_password = "kedi172";
   sock_fd = -1;
+  Channel chnl1("linux");
+  Channel chnl2("42");
+  Channel chnl3("itu");
+  channels.insert(std::pair<std::string, Channel>("linux", chnl1));
+  channels.insert(std::pair<std::string, Channel>("42", chnl2));
+  channels.insert(std::pair<std::string, Channel>("itu", chnl3));
 };
 
 ft_irc::~ft_irc(){};
@@ -212,6 +218,16 @@ void ft_irc::OPER(int sockfd, const std::vector<std::string> &args) {
   catch(const std::exception& e) {
     const char *invalidMessage = "\033[1;31mUser not found!\033[1;0m\r\n";
     SendMessage(sockfd, invalidMessage);
+  }
+}
+
+void ft_irc::LIST(int sockfd){
+  std::map<std::string, Channel>::iterator it = channels.begin();
+  while (it != channels.end()) {
+    std::string message = "\033[1;35m" + it->first + "\033[1;0m\r\n";
+    const char *promptMessage = message.c_str();
+    SendMessage(sockfd, promptMessage);
+    it++;
   }
 }
 

@@ -16,6 +16,9 @@
 #include <exception>
 
 #include "user.hpp"
+#include "channel.hpp"
+
+class Channel;
 
 class ft_irc
 {
@@ -25,6 +28,7 @@ private:
     std::string operator_password;
     int sock_fd;
     std::map<int, User> users;
+    std::map<std::string, Channel> channels;
     std::unordered_map<int, std::string> connectionNicknameMap;
     std::map<std::string, int> nicknameConnectionMap;
 
@@ -51,6 +55,7 @@ public:
     void NICK(int sockfd, const std::vector<std::string>& args);
 	void USER(int connection, const std::vector<std::string>& args);
     void OPER(int sockfd, const std::vector<std::string> &args);
+    void LIST(int sockfd);
     void PRIVMSG(int connection, const std::vector<std::string>& args);
 };
 
