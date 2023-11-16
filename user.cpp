@@ -26,6 +26,7 @@ void User::SetUsername(std::string name) { this->username = name; }
 std::string User::GetUsername() { return this->username; }
 void User::SetRealname(std::string r_name) { this->realname = r_name; }
 std::string User::GetRealname() { return this->realname; }
+int User::GetSocket() { return this->sock_fd; }
 bool User::IsAuthenticated() { return (pass && nick && usr); }
 void User::SetPass(bool pass) {this->pass = pass;}
 bool User::GetPass() {return this->pass;}

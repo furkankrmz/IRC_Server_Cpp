@@ -41,6 +41,9 @@ public:
     void StartListening(int sockfd);
     int AcceptConnection(int sockfd);
     void SendMessage(int sockfd, const char *message);
+    User findUserBySocket(int sockfd);
+    User findUserByNickname(std::string nickname);
+    User findUserByUsername(std::string username);
     void Welcome(int sockfd);
     void HELP(int sockfd);
     void PASS(int sockfd, const std::vector<std::string>& args);

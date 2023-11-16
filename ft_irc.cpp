@@ -80,6 +80,35 @@ void ft_irc::SendMessage(int sockfd, const char *message) {
   send(sockfd, message, strlen(message), 0);
 }
 
+User ft_irc::findUserBySocket(int sockfd) {
+  std::map<int, User>::iterator it = users.find(sockfd);
+  if (it != users.end())
+    return (it->second);
+  throw ("User not found");
+}
+
+User ft_irc::findUserByNickname(std::string nickname) {
+  std::map<int, User>::iterator it = users.begin();
+  while (it != users.end()) {
+    if (it->second.GetNickname() == nickname) {
+      return (it->second);
+    }
+    it++;
+  }
+  throw ("User not found");
+}
+
+User ft_irc::findUserByUsername(std::string username) {
+  std::map<int, User>::iterator it = users.begin();
+  while (it != users.end()) {
+    if (it->second.GetUsername() == username) {
+      return (it->second);
+    }
+    it++;
+  }
+  throw ("User not found");
+}
+
 void ft_irc::Welcome(int sockfd) {
   const char *promptMessage = "\033[1;35mWelcome to the server! \033[1;0m \r\n";
   SendMessage(sockfd, promptMessage);
@@ -116,31 +145,23 @@ void ft_irc::HELP(int sockfd) {
 // Function to authenticate password
 void ft_irc::PASS(int clientSocket, const std::vector<std::string> &args) {
   std::map<int, User>::iterator it = users.find(clientSocket);
-  if (!it->second.GetPass()) {
-    std::map<int, User>::iterator it = users.find(clientSocket);
-    std::string clientPassword = args[1];
-    std::cout << clientPassword << std::endl;
-    if (clientPassword != password) {
-      const char *invalidMessage =
-          "\033[1;31mInvalid password! Please try again.\033[1;0m\r\n";
-      SendMessage(clientSocket, invalidMessage);
-    } else {
-      const char *successMessage = "\033[1;32mClient authenticated!\033[1;0m\r\n";
-      SendMessage(clientSocket, successMessage);
-      it->second.SetPass(true);
-      std::cout << "\033[1;32mClient on socket " << clientSocket
-                << " authenticated!\033[1;0m\r\n";
-    }
-  } else {
+  std::string clientPassword = args[1];
+  std::cout << clientPassword << std::endl;
+  if (clientPassword != password) {
     const char *invalidMessage =
-        "\033[1;33mYou already authorized your password.\033[1;0m\r\n";
+        "\033[1;31mInvalid password! Please try again.\033[1;0m\r\n";
     SendMessage(clientSocket, invalidMessage);
+  } else {
+    const char *successMessage = "\033[1;32mClient authenticated!\033[1;0m\r\n";
+    SendMessage(clientSocket, successMessage);
+    it->second.SetPass(true);
+    std::cout << "\033[1;32mClient on socket " << clientSocket
+              << " authenticated!\033[1;0m\r\n";
   }
 }
 
 void ft_irc::NICK(int connection, const std::vector<std::string> &args) {
   static std::unordered_set<std::string> usedNicknames;
-
   std::string oldNickname = connectionNicknameMap[connection];
   std::string newNickname = args[1];
   if (usedNicknames.find(args[1]) != usedNicknames.end()) {
@@ -156,22 +177,21 @@ void ft_irc::NICK(int connection, const std::vector<std::string> &args) {
     usedNicknames.insert(newNickname);
     std::map<int, User>::iterator it = users.find(connection);
     it->second.SetNickname(newNickname);
+    it->second.SetNick(true);
   }
 }
 
 void ft_irc::PRIVMSG(int connection, const std::vector<std::string>& args){
   std::string nick = args[1];
   const char* p_message = args[2].c_str();
-  std::map<int, User>::iterator it = users.begin();
-  while (it != users.end()) {
-    if (it->second.GetNickname() == nick) {
-      SendMessage(it->first, p_message);
-      return;
-    }
-    it++;
+  try {
+    User usr = findUserByNickname(nick);
+    SendMessage(usr.GetSocket(), p_message);
   }
-  const char *invalidMessage = "\033[1;31mUser not found!\033[1;0m\r\n";
-  SendMessage(connection, invalidMessage);
+  catch(const std::exception& e) {
+    const char *invalidMessage = "\033[1;31mUser not found!\033[1;0m\r\n";
+    SendMessage(connection, invalidMessage);
+  }
 }
 
 void ft_irc::OPER(int sockfd, const std::vector<std::string> &args) {
@@ -180,30 +200,22 @@ void ft_irc::OPER(int sockfd, const std::vector<std::string> &args) {
     SendMessage(sockfd, invalidMessage);
     return;
   }
-  std::map<int, User>::iterator it = users.begin();
-  while (it != users.end()) {
-    if (it->second.GetUsername() == args[1]) {
-      it->second.SetOper(true);
-      return;
-    }
-    it++;
+  try {
+    User usr = findUserByUsername(args[1]);
+    usr.SetOper(true);
   }
-  const char *invalidMessage = "\033[1;31mUser not found!\033[1;0m\r\n";
-  SendMessage(sockfd, invalidMessage);
+  catch(const std::exception& e) {
+    const char *invalidMessage = "\033[1;31mUser not found!\033[1;0m\r\n";
+    SendMessage(sockfd, invalidMessage);
+  }
 }
 
 void ft_irc::USER(int sockfd, const std::vector<std::string> &args) {
+  const char *promptMessage = "\033[1;32mWelcome \033[1;0m\r\n";
+  SendMessage(sockfd, promptMessage);
   std::map<int, User>::iterator it = users.find(sockfd);
-  if (!it->second.GetUsr()) {
-    const char *promptMessage = "\033[1;32mWelcome \033[1;0m\r\n";
-    SendMessage(sockfd, promptMessage);
-    std::map<int, User>::iterator it = users.find(sockfd);
-    it->second.SetUsr(true);
-    it->second.SetUsername(args[1]);
-  } else {
-    const char *invalidMessage = "\033[1;33mYou already set user.\033[1;0m\r\n";
-    SendMessage(sockfd, invalidMessage);
-  }
+  it->second.SetUsr(true);
+  it->second.SetUsername(args[1]);
 }
 
 

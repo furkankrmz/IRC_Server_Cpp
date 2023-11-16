@@ -22,6 +22,7 @@ public:
     void SetRealname(std::string r_name);
     std::string GetRealname();
     bool IsAuthenticated();
+    int GetSocket();
     void SetPass(bool);
     bool GetPass();
     void SetNick(bool);
