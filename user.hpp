@@ -28,4 +28,6 @@ public:
     bool GetNick();
     void SetUsr(bool);
     bool GetUsr();
+    void SetOper(bool);
+    bool GetOper();
 };

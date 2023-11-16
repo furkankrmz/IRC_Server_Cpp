@@ -5,12 +5,13 @@ void commandHandler::initialize() {
     commandHandler::functions.insert(std::pair<std::string,command>("NICK", commandHandler::NICK));
     commandHandler::functions.insert(std::pair<std::string,command>("HELP", commandHandler::HELP));
     commandHandler::functions.insert(std::pair<std::string,command>("USER", commandHandler::USER));
+    commandHandler::functions.insert(std::pair<std::string,command>("OPER", commandHandler::OPER));
     commandHandler::functions.insert(std::pair<std::string,command>("PRIVMSG", commandHandler::PRIVMSG));
 }
 
 void commandHandler::PASS(int sockfd, const std::vector<std::string>& args, ft_irc& irc) {
     if (args.size() != 2) {
-        const char *invalidMessage = "\033[1;31mIncorrect use of command! Correct usage: PASS <server password>\033[1;0m\n";
+        const char *invalidMessage = "\033[1;31mIncorrect use of command! Correct usage: PASS <server password>\033[1;0m\r\n";
         irc.SendMessage(sockfd, invalidMessage);
         return;
     }
@@ -19,7 +20,7 @@ void commandHandler::PASS(int sockfd, const std::vector<std::string>& args, ft_i
 
 void commandHandler::NICK(int sockfd, const std::vector<std::string>& args, ft_irc& irc) {
     if (args.size() != 2) {
-        const char *invalidMessage = "\033[1;31mIncorrect use of command! Correct usage: NICK <nickname>\033[1;0m\n";
+        const char *invalidMessage = "\033[1;31mIncorrect use of command! Correct usage: NICK <nickname>\033[1;0m\r\n";
         irc.SendMessage(sockfd, invalidMessage);
         return;
     }
@@ -28,7 +29,7 @@ void commandHandler::NICK(int sockfd, const std::vector<std::string>& args, ft_i
 
 void commandHandler::HELP(int sockfd, const std::vector<std::string>& args, ft_irc& irc) {
     if (args.size() != 1) {
-        const char *invalidMessage = "\033[1;31mIncorrect use of command! Correct usage: HELP\033[1;0m\n";
+        const char *invalidMessage = "\033[1;31mIncorrect use of command! Correct usage: HELP\033[1;0m\r\n";
         irc.SendMessage(sockfd, invalidMessage);
         return;
     }
@@ -37,19 +38,30 @@ void commandHandler::HELP(int sockfd, const std::vector<std::string>& args, ft_i
 
 void commandHandler::USER(int sockfd, const std::vector<std::string>& args, ft_irc& irc) {
     // if (args.size() != 1) {
-    //     const char *invalidMessage = "\033[1;31mIncorrect use of command! Correct usage: HELP\033[1;0m\n";
+    //     const char *invalidMessage = "\033[1;31mIncorrect use of command! Correct usage: HELP\033[1;0m\r\n";
     //     irc.SendMessage(sockfd, invalidMessage);
     //     return;
     // }
     irc.USER(sockfd, args);
 }
 
+void commandHandler::OPER(int sockfd, const std::vector<std::string>& args, ft_irc& irc) {
+    if (args.size() != 3) {
+        const char *invalidMessage = "\033[1;31mIncorrect use of command! Correct usage: OPER <username> <password>\033[1;0m\r\n";
+        irc.SendMessage(sockfd, invalidMessage);
+        return;
+    }
+    irc.OPER(sockfd, args);
+}
+
 void commandHandler::PRIVMSG(int sockfd, const std::vector<std::string>& args, ft_irc& irc) {
-    // if (args.size() != 1) {
-    //     const char *invalidMessage = "\033[1;31mIncorrect use of command! Correct usage: HELP\033[1;0m\n";
-    //     irc.SendMessage(sockfd, invalidMessage);
-    //     return;
-    // }
+    if (args.size() < 3) {
+    const char *invalidMessage =
+        "\033[1;31mIncorrect use of command! Correct usage: PRIVMSG <nickname> "
+        "<message>\033[1;0m\r\n";
+    irc.SendMessage(sockfd, invalidMessage);
+    return;
+  }
     irc.PRIVMSG(sockfd, args);
 }
 

@@ -5,7 +5,7 @@ int main(int ac, char *av[])
 {
     if (ac != 3)
     {
-        std::cout << "Usage: " << av[0] << " <port number> <password>\n";
+        std::cout << "Usage: " << av[0] << " <port number> <password>\r\n";
         exit(EXIT_FAILURE);
     }
 
@@ -84,14 +84,6 @@ int main(int ac, char *av[])
                     std::vector<std::string> args = parse(line);
 
                     command.command_handler(fd, args, irc);
-                    // if (strncmp(buffer, "NOTICE ", 7) == 0)
-                    // {
-                    //     const char* notice_message = buffer + 7;
-                    //     for (int fd = irc.GetSockFD(); fd <= maxfd; ++fd) {
-                    //         irc.SendMessage(fd,notice_message);
-                    //     }  
-                    // }
-                    // else 
                     if (strncmp(buffer, "QUIT", 4) == 0)
                     {
                         std::cout << "\033[1;33mClient on socket " << fd << " requested to quit.\033[1;0m" << std::endl;

@@ -21,6 +21,7 @@ class ft_irc
 private:
     int port_number;
     std::string password;
+    std::string operator_password;
     int sock_fd;
     std::map<int, User> users;
     std::unordered_map<int, std::string> connectionNicknameMap;
@@ -45,6 +46,7 @@ public:
     void PASS(int sockfd, const std::vector<std::string>& args);
     void NICK(int sockfd, const std::vector<std::string>& args);
 	void USER(int connection, const std::vector<std::string>& args);
+    void OPER(int sockfd, const std::vector<std::string> &args);
     void PRIVMSG(int connection, const std::vector<std::string>& args);
 };
 

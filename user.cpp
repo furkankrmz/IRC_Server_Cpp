@@ -2,7 +2,7 @@
 
 User::User() {
   this->sock_fd = -1;
-  this->is_operator = 0;
+  this->is_operator = false;
   this->pass = false;
   this->nick = false;
   this->usr = false;
@@ -12,7 +12,7 @@ User::User() {
 }
 User::User(int fd) {
   sock_fd = fd;
-  is_operator = 0;
+  is_operator = false;
   pass = false;
   nick = false;
   usr = false;
@@ -33,3 +33,5 @@ void User::SetNick(bool nick) {this->nick = nick;}
 bool User::GetNick() {return this->nick;}
 void User::SetUsr(bool usr) {this->usr = usr;}
 bool User::GetUsr() {return this->usr;}
+void User::SetOper(bool oper) {this->is_operator = oper;}
+bool User::GetOper() {return this->is_operator;}

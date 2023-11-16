@@ -76,35 +76,35 @@ void ft_irc::SendMessage(int sockfd, const char *message) {
 }
 
 void ft_irc::Welcome(int sockfd) {
-  const char *promptMessage = "\033[1;35mWelcome to the server! \033[1;0m \n";
+  const char *promptMessage = "\033[1;35mWelcome to the server! \033[1;0m \r\n";
   SendMessage(sockfd, promptMessage);
   promptMessage =
       "\033[1;35mPlease login to use chat. Use HELP command to learn how to "
-      "login. \033[1;0m \n";
+      "login. \033[1;0m \r\n";
   SendMessage(sockfd, promptMessage);
 }
 
 void ft_irc::HELP(int sockfd) {
   std::map<int, User>::iterator it = users.find(sockfd);
   if (!it->second.IsAuthenticated()) {
-    const char *promptMessage = "\033[1;32mSTEP 1: PASS \033[1;0m\n";
+    const char *promptMessage = "\033[1;32mSTEP 1: PASS \033[1;0m\r\n";
     SendMessage(sockfd, promptMessage);
     promptMessage =
-        "    Use PASS command to set a password. e.g: PASS <server password>\n";
+        "    Use PASS command to set a password. e.g: PASS <server password>\r\n";
     SendMessage(sockfd, promptMessage);
-    promptMessage = "\033[1;32mSTEP 2: NICK \033[1;0m\n";
+    promptMessage = "\033[1;32mSTEP 2: NICK \033[1;0m\r\n";
     SendMessage(sockfd, promptMessage);
     promptMessage =
-        "    Use NICK command to set a nickname. e.g: NICK <nickname> \n";
+        "    Use NICK command to set a nickname. e.g: NICK <nickname> \r\n";
     SendMessage(sockfd, promptMessage);
-    promptMessage = "\033[1;32mSTEP 3: USER \033[1;0m\n";
+    promptMessage = "\033[1;32mSTEP 3: USER \033[1;0m\r\n";
     SendMessage(sockfd, promptMessage);
     promptMessage =
         "    Use USER command to register your username and fullname.e.g: USER "
-        "<username> * * :<fullname> \n";
+        "<username> * * :<fullname> \r\n";
     SendMessage(sockfd, promptMessage);
   } else {
-    const char *promptMessage = "\033[1;32mYComing soon! \033[1;0m\n";
+    const char *promptMessage = "\033[1;32mYComing soon! \033[1;0m\r\n";
     SendMessage(sockfd, promptMessage);
   }
 }
@@ -117,30 +117,23 @@ void ft_irc::PASS(int clientSocket, const std::vector<std::string> &args) {
     std::cout << clientPassword << std::endl;
     if (clientPassword != password) {
       const char *invalidMessage =
-          "\033[1;31mInvalid password! Please try again.\033[1;0m\n";
+          "\033[1;31mInvalid password! Please try again.\033[1;0m\r\n";
       SendMessage(clientSocket, invalidMessage);
     } else {
-      const char *successMessage = "\033[1;32mClient authenticated!\033[1;0m\n";
+      const char *successMessage = "\033[1;32mClient authenticated!\033[1;0m\r\n";
       SendMessage(clientSocket, successMessage);
       it->second.SetPass(true);
       std::cout << "\033[1;32mClient on socket " << clientSocket
-                << " authenticated!\033[1;0m\n";
+                << " authenticated!\033[1;0m\r\n";
     }
   } else {
     const char *invalidMessage =
-        "\033[1;33mYou already authorized your password.\033[1;0m\n";
+        "\033[1;33mYou already authorized your password.\033[1;0m\r\n";
     SendMessage(clientSocket, invalidMessage);
   }
 }
 
 void ft_irc::NICK(int connection, const std::vector<std::string> &args) {
-  if (args.size() != 2) {
-    const char *invalidMessage =
-        "\033[1;31mIncorrect use of command! Correct usage: NICK "
-        "<nickname>\033[1;0m\n";
-    SendMessage(connection, invalidMessage);
-    return;
-  }
   static std::unordered_set<std::string> usedNicknames;
 
   std::string oldNickname = connectionNicknameMap[connection];
@@ -148,11 +141,11 @@ void ft_irc::NICK(int connection, const std::vector<std::string> &args) {
   if (usedNicknames.find(args[1]) != usedNicknames.end()) {
     const char *message =
         "\033[1;31mNickname is already in use. Please choose a different "
-        "one.\033[1;0m\n";
+        "one.\033[1;0m\r\n";
     send(connection, message, strlen(message), 0);
   } else {
     const char *successMessage =
-        "\033[1;32mNickname changed successfully!\033[1;0m\n";
+        "\033[1;32mNickname changed successfully!\033[1;0m\r\n";
     SendMessage(connection, successMessage);
     usedNicknames.erase(oldNickname);
     usedNicknames.insert(newNickname);
@@ -162,13 +155,6 @@ void ft_irc::NICK(int connection, const std::vector<std::string> &args) {
 }
 
 void ft_irc::PRIVMSG(int connection, const std::vector<std::string>& args){
-  if (args.size() < 3) {
-    const char *invalidMessage =
-        "\033[1;31mIncorrect use of command! Correct usage: PRIVMSG <nickname> "
-        "<message>\033[1;0m\n";
-    SendMessage(connection, invalidMessage);
-    return;
-  }
   std::string nick = args[1];
   const char* p_message = args[2].c_str();
   std::map<int, User>::iterator it = users.begin();
@@ -179,19 +165,37 @@ void ft_irc::PRIVMSG(int connection, const std::vector<std::string>& args){
     }
     it++;
   }
-  const char *invalidMessage = "\033[1;31mUser not found!\033[1;0m\n";
+  const char *invalidMessage = "\033[1;31mUser not found!\033[1;0m\r\n";
   SendMessage(connection, invalidMessage);
 }
+
+void ft_irc::OPER(int sockfd, const std::vector<std::string> &args) {
+  if (args[2] != operator_password) {
+    const char *invalidMessage = "\033[1;31mIncorrect password\033[1;0m\r\n";
+    SendMessage(sockfd, invalidMessage);
+  }
+  std::map<int, User>::iterator it = users.begin();
+  while (it != users.end()) {
+    if (it->second.GetUsername() == args[1]) {
+      it->second.SetOper(true);
+      return;
+    }
+    it++;
+  }
+  const char *invalidMessage = "\033[1;31mUser not found!\033[1;0m\r\n";
+  SendMessage(sockfd, invalidMessage);
+}
+
 void ft_irc::USER(int sockfd, const std::vector<std::string> &args) {
   std::map<int, User>::iterator it = users.find(sockfd);
   if (!it->second.GetUsr()) {
-    const char *promptMessage = "\033[1;32mWelcome \033[1;0m\n";
+    const char *promptMessage = "\033[1;32mWelcome \033[1;0m\r\n";
     SendMessage(sockfd, promptMessage);
     std::map<int, User>::iterator it = users.find(sockfd);
     it->second.SetUsr(true);
     it->second.SetUsername(args[1]);
   } else {
-    const char *invalidMessage = "\033[1;33mYou already set user.\033[1;0m\n";
+    const char *invalidMessage = "\033[1;33mYou already set user.\033[1;0m\r\n";
     SendMessage(sockfd, invalidMessage);
   }
 }
