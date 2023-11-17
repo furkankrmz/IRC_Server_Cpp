@@ -155,7 +155,6 @@ void ft_irc::HELP(int sockfd) {
 void ft_irc::PASS(int clientSocket, const std::vector<std::string> &args) {
   std::map<int, User>::iterator it = users.find(clientSocket);
   std::string clientPassword = args[1];
-  std::cout << clientPassword << std::endl;
   if (clientPassword != password) {
     const char *invalidMessage =
         "\033[1;31mInvalid password! Please try again.\033[1;0m\r\n";

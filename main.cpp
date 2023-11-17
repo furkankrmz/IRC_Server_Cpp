@@ -62,7 +62,7 @@ int main(int ac, char *av[])
         {
             if (FD_ISSET(fd, &tmp_fds))
             {
-                char buffer[100];
+                char buffer[1000];
                 int bytesRead = recv(fd, buffer, sizeof(buffer) - 1, 0);
                 if (bytesRead <= 0)
                 {
