@@ -39,7 +39,6 @@ void ft_irc::CreateSocket() {
     exit(EXIT_FAILURE);
   }
 };
-
 // Function to bind the socket to a port
 void ft_irc::BindSocket(int sockfd, int portNumber) {
   sockaddr_in sockaddr;
@@ -53,7 +52,6 @@ void ft_irc::BindSocket(int sockfd, int portNumber) {
     exit(EXIT_FAILURE);
   }
 }
-
 // Function to listen for connections
 void ft_irc::StartListening(int sockfd) {
   if (listen(sockfd, 100) < 0) {
@@ -61,7 +59,6 @@ void ft_irc::StartListening(int sockfd) {
     exit(EXIT_FAILURE);
   }
 }
-
 // Function to accept a connection
 int ft_irc::AcceptConnection(int sockfd) {
   socklen_t addrlen;
@@ -82,19 +79,9 @@ int ft_irc::AcceptConnection(int sockfd) {
             << " on socket " << connection << std::endl;
   return connection;
 }
+
 void ft_irc::SendMessage(int sockfd, const char *message) {
   send(sockfd, message, strlen(message), 0);
-}
-
-Channel ft_irc::findChannel(int fd, std::string name) {
-  std::map<std::string, Channel>::iterator it = channels.find(name);
-  if (it != channels.end())
-    return (it->second);
-  Channel chnl(name);
-  channels.insert(std::pair<std::string, Channel>(name, chnl));
-  const char *successMessage = "\033[1;32mChannel successfully created!\033[1;0m\r\n";
-  SendMessage(fd, successMessage);
-  return (chnl);
 }
 
 User ft_irc::findUserBySocket(int sockfd) {
@@ -230,8 +217,16 @@ void ft_irc::OPER(int sockfd, const std::vector<std::string> &args) {
   try {
     User usr = findUserByUsername(args[1]);
     std::map<int, User>::iterator it = users.find(usr.GetSocket());
+    if(it->second.GetOper())
+    {
+      std::string msg = "\033[1;33m" + args[1] + " is already operator! \033[1;0m\r\n";
+      const char *invalidMessage = msg.c_str();
+      SendMessage(sockfd, invalidMessage);
+      return;
+    }
     it->second.SetOper(true);
-    const char *message = "\033[1;32mYou are now operator\033[1;0m\r\n";
+    std::string msg = "\033[1;32m" + args[1] + " is now operator\033[1;0m\r\n";
+    const char *message = msg.c_str();
     send(sockfd, message, strlen(message), 0);
   }
   catch(const std::exception& e) {
@@ -253,9 +248,21 @@ void ft_irc::LIST(int sockfd){
 void ft_irc::JOIN(int sockfd, const std::vector<std::string> &args) {
   std::map<std::string, Channel>::iterator it = channels.find(args[1]);
   try {
-    it->second.addUser(users.find(sockfd)->second);
-    const char *message = "\033[1;32mYou succesfully joined to channel\033[1;0m\r\n";
-    send(sockfd, message, strlen(message), 0);
+    if (it != channels.end()) {
+      it->second.addUser(users.find(sockfd)->second);
+      const char *message = "\033[1;32mYou succesfully joined to channel\033[1;0m\r\n";
+      send(sockfd, message, strlen(message), 0);
+    }
+    else {
+      Channel chnl(args[1]);
+      channels.insert(std::pair<std::string, Channel>(args[1], chnl));
+      const char *successMessage = "\033[1;32mChannel successfully created!\033[1;0m\r\n";
+      SendMessage(sockfd, successMessage);
+      std::map<std::string, Channel>::iterator it = channels.find(args[1]);
+      it->second.addUser(users.find(sockfd)->second);
+      const char *message = "\033[1;32mYou succesfully joined to channel\033[1;0m\r\n";
+      send(sockfd, message, strlen(message), 0);
+    }
   }
   catch(...) {
     const char *message = "\033[1;31mYou are already in channel\033[1;0m\r\n";
@@ -284,11 +291,11 @@ void ft_irc::KICK(int sockfd, const std::vector<std::string> &args) {
 }
 
 void ft_irc::USER(int sockfd, const std::vector<std::string> &args) {
-  const char *promptMessage = "\033[1;32mWelcome \033[1;0m\r\n";
-  SendMessage(sockfd, promptMessage);
   std::map<int, User>::iterator it = users.find(sockfd);
+  SendMessage(sockfd, "\033[1;32mWelcome \033[1;0m\r\n");
   it->second.SetUsr(true);
   it->second.SetUsername(args[1]);
+  it->second.SetRealname(args[4]);
 }
 
 

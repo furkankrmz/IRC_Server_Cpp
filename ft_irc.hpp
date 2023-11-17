@@ -44,7 +44,6 @@ public:
     void StartListening(int sockfd);
     int AcceptConnection(int sockfd);
     void SendMessage(int sockfd, const char *message);
-    Channel findChannel(int fd, std::string name);
     User findUserBySocket(int sockfd);
     User findUserByNickname(std::string nickname);
     User findUserByUsername(std::string username);

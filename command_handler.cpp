@@ -57,11 +57,10 @@ void commandHandler::HELP(int sockfd, const std::vector<std::string>& args, ft_i
 }
 
 void commandHandler::USER(int sockfd, const std::vector<std::string>& args, ft_irc& irc) {
-    // if (args.size() != 1) {
-    //     const char *invalidMessage = "\033[1;31mIncorrect use of command! Correct usage: HELP\033[1;0m\r\n";
-    //     irc.SendMessage(sockfd, invalidMessage);
-    //     return;
-    // }
+    if (args.size() != 5 || args[2] != "*" || args[3] != "*") {
+        irc.SendMessage(sockfd, "\033[1;31mIncorrect use of command! Correct usage: USER <username> * * :<realname>\033[1;0m\r\n");
+        return;
+    }
     try {
         User usr = irc.findUserBySocket(sockfd);
         if (usr.GetUsr()) {
@@ -201,7 +200,7 @@ void commandHandler::PRIVMSG(int sockfd, const std::vector<std::string>& args, f
 void commandHandler::command_handler(int sockfd, const std::vector<std::string>& args, ft_irc& irc) {
     if (args.size() == 0)
       return;
-    if (!args[0].compare("QUIT"))
+    if (!args[0].compare("QUIT") || !args[0].compare("DIE"))
       return;
     if (commandHandler::functions.find(args[0]) == commandHandler::functions.end())
       return;
