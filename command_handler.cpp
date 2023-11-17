@@ -202,7 +202,9 @@ void commandHandler::command_handler(int sockfd, const std::vector<std::string>&
       return;
     if (!args[0].compare("QUIT") || !args[0].compare("DIE"))
       return;
-    if (commandHandler::functions.find(args[0]) == commandHandler::functions.end())
-      return;
+    if (commandHandler::functions.find(args[0]) == commandHandler::functions.end()) {
+        irc.SendMessage(sockfd,"\033[1;31mThis command is not defined!\033[1;0m\r\n" );
+        return;
+    }
     commandHandler::functions[args[0]](sockfd, args, irc);
 }
