@@ -7,6 +7,7 @@ void commandHandler::initialize() {
     commandHandler::functions.insert(std::pair<std::string,command>("USER", commandHandler::USER));
     commandHandler::functions.insert(std::pair<std::string,command>("OPER", commandHandler::OPER));
     commandHandler::functions.insert(std::pair<std::string,command>("LIST", commandHandler::LIST));
+    commandHandler::functions.insert(std::pair<std::string,command>("JOIN", commandHandler::JOIN));
     commandHandler::functions.insert(std::pair<std::string,command>("PRIVMSG", commandHandler::PRIVMSG));
 }
 
@@ -114,6 +115,30 @@ void commandHandler::LIST(int sockfd, const std::vector<std::string>& args, ft_i
             }
             else
                 irc.LIST(sockfd);
+        }
+        catch(...) {
+            const char *invalidMessage = "\033[1;33mUser not found!\033[1;0m\r\n";
+            irc.SendMessage(sockfd, invalidMessage);
+        }
+    }
+}
+
+void commandHandler::JOIN(int sockfd, const std::vector<std::string>& args, ft_irc& irc) {
+    if (args.size() < 2) {
+        const char *invalidMessage =
+            "\033[1;31mIncorrect use of command! Correct usage: JOIN <channels>\033[1;0m\r\n";
+        irc.SendMessage(sockfd, invalidMessage);
+        return;
+    }
+    else {
+        try {
+            User usr = irc.findUserBySocket(sockfd);
+            if (!usr.IsAuthenticated()) {
+                const char *invalidMessage = "\033[1;31mPlease login to use chat. Use HELP command to learn how to login. \033[1;0m \r\n";
+                irc.SendMessage(sockfd, invalidMessage);
+            }
+            else
+                irc.JOIN(sockfd, args);
         }
         catch(...) {
             const char *invalidMessage = "\033[1;33mUser not found!\033[1;0m\r\n";

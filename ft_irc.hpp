@@ -23,10 +23,10 @@ class Channel;
 class ft_irc
 {
 private:
+    int sock_fd;
     int port_number;
     std::string password;
     std::string operator_password;
-    int sock_fd;
     std::map<int, User> users;
     std::map<std::string, Channel> channels;
 
@@ -44,6 +44,7 @@ public:
     void StartListening(int sockfd);
     int AcceptConnection(int sockfd);
     void SendMessage(int sockfd, const char *message);
+    Channel findChannel(int fd, std::string name);
     User findUserBySocket(int sockfd);
     User findUserByNickname(std::string nickname);
     User findUserByUsername(std::string username);
@@ -55,6 +56,7 @@ public:
 	void USER(int connection, const std::vector<std::string>& args);
     void OPER(int sockfd, const std::vector<std::string> &args);
     void LIST(int sockfd);
+    void JOIN(int sockfd, const std::vector<std::string> &args);
     void PRIVMSG(int connection, const std::vector<std::string>& args);
 };
 

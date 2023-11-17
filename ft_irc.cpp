@@ -86,6 +86,17 @@ void ft_irc::SendMessage(int sockfd, const char *message) {
   send(sockfd, message, strlen(message), 0);
 }
 
+Channel ft_irc::findChannel(int fd, std::string name) {
+  std::map<std::string, Channel>::iterator it = channels.find(name);
+  if (it != channels.end())
+    return (it->second);
+  Channel chnl(name);
+  channels.insert(std::pair<std::string, Channel>(name, chnl));
+  const char *successMessage = "\033[1;32mChannel successfully created!\033[1;0m\r\n";
+  SendMessage(fd, successMessage);
+  return (chnl);
+}
+
 User ft_irc::findUserBySocket(int sockfd) {
   std::map<int, User>::iterator it = users.find(sockfd);
   if (it != users.end())
@@ -234,6 +245,14 @@ void ft_irc::LIST(int sockfd){
     SendMessage(sockfd, promptMessage);
     it++;
   }
+}
+
+void ft_irc::JOIN(int sockfd, const std::vector<std::string> &args) {
+  std::string channel = args[1];
+  Channel chnl = findChannel(sockfd, channel);
+  chnl.addUser(findUserBySocket(sockfd));
+  const char *message = "\033[1;32mYou succesfully joined to channel\033[1;0m\r\n";
+  send(sockfd, message, strlen(message), 0);
 }
 
 void ft_irc::USER(int sockfd, const std::vector<std::string> &args) {
