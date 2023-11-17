@@ -250,9 +250,15 @@ void ft_irc::LIST(int sockfd){
 void ft_irc::JOIN(int sockfd, const std::vector<std::string> &args) {
   std::string channel = args[1];
   Channel chnl = findChannel(sockfd, channel);
-  chnl.addUser(findUserBySocket(sockfd));
-  const char *message = "\033[1;32mYou succesfully joined to channel\033[1;0m\r\n";
-  send(sockfd, message, strlen(message), 0);
+  try {
+    chnl.addUser(findUserBySocket(sockfd));
+    const char *message = "\033[1;32mYou succesfully joined to channel\033[1;0m\r\n";
+    send(sockfd, message, strlen(message), 0);
+  }
+  catch(...) {
+    const char *message = "\033[1;31mYou are already in channel\033[1;0m\r\n";
+    send(sockfd, message, strlen(message), 0);
+  }
 }
 
 void ft_irc::USER(int sockfd, const std::vector<std::string> &args) {
