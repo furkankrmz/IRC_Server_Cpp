@@ -229,7 +229,8 @@ void ft_irc::OPER(int sockfd, const std::vector<std::string> &args) {
   }
   try {
     User usr = findUserByUsername(args[1]);
-    usr.SetOper(true);
+    std::map<int, User>::iterator it = users.find(usr.GetSocket());
+    it->second.SetOper(true);
   }
   catch(const std::exception& e) {
     const char *invalidMessage = "\033[1;31mUser not found!\033[1;0m\r\n";
@@ -248,10 +249,9 @@ void ft_irc::LIST(int sockfd){
 }
 
 void ft_irc::JOIN(int sockfd, const std::vector<std::string> &args) {
-  std::string channel = args[1];
-  Channel chnl = findChannel(sockfd, channel);
+  std::map<std::string, Channel>::iterator it = channels.find(args[1]);
   try {
-    chnl.addUser(findUserBySocket(sockfd));
+    it->second.addUser(users.find(sockfd)->second);
     const char *message = "\033[1;32mYou succesfully joined to channel\033[1;0m\r\n";
     send(sockfd, message, strlen(message), 0);
   }
