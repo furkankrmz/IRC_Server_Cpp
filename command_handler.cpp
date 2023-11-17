@@ -70,6 +70,7 @@ void commandHandler::USER(int sockfd, const std::vector<std::string>& args, ft_i
         }
         else
             irc.USER(sockfd, args);
+        
     }
     catch(...) {
         const char *invalidMessage = "\033[1;33mUser not found!\033[1;0m\r\n";

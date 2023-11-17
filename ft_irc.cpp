@@ -231,6 +231,8 @@ void ft_irc::OPER(int sockfd, const std::vector<std::string> &args) {
     User usr = findUserByUsername(args[1]);
     std::map<int, User>::iterator it = users.find(usr.GetSocket());
     it->second.SetOper(true);
+    const char *message = "\033[1;32mYou are now operator\033[1;0m\r\n";
+    send(sockfd, message, strlen(message), 0);
   }
   catch(const std::exception& e) {
     const char *invalidMessage = "\033[1;31mUser not found!\033[1;0m\r\n";
@@ -264,14 +266,19 @@ void ft_irc::JOIN(int sockfd, const std::vector<std::string> &args) {
 void ft_irc::KICK(int sockfd, const std::vector<std::string> &args) {
   std::string channel = args[1];
   std::string client = args[2];
-  Channel chnl = findChannel(sockfd, channel);
+  if (channels.find(channel) == channels.end()) {
+    const char *message = "\033[1;31mChannel not found\033[1;0m\r\n";
+    send(sockfd, message, strlen(message), 0);
+    return;
+  }
+  std::map<std::string, Channel>::iterator it = channels.find(channel);
   try {
-    chnl.kickUser(findUserBySocket(sockfd));
+    it->second.kickUser(findUserByUsername(client));
     const char *message = "\033[1;32mYou succesfully kicked user\033[1;0m\r\n";
     send(sockfd, message, strlen(message), 0);
   }
   catch(...) {
-  const char *message = "\033[1;31mUser not in channel!\033[1;0m\r\n";
+    const char *message = "\033[1;31mUser not in channel!\033[1;0m\r\n";
     send(sockfd, message, strlen(message), 0);
   }
 }
