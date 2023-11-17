@@ -261,6 +261,21 @@ void ft_irc::JOIN(int sockfd, const std::vector<std::string> &args) {
   }
 }
 
+void ft_irc::KICK(int sockfd, const std::vector<std::string> &args) {
+  std::string channel = args[1];
+  std::string client = args[2];
+  Channel chnl = findChannel(sockfd, channel);
+  try {
+    chnl.kickUser(findUserBySocket(sockfd));
+    const char *message = "\033[1;32mYou succesfully kicked user\033[1;0m\r\n";
+    send(sockfd, message, strlen(message), 0);
+  }
+  catch(...) {
+  const char *message = "\033[1;31mUser not in channel!\033[1;0m\r\n";
+    send(sockfd, message, strlen(message), 0);
+  }
+}
+
 void ft_irc::USER(int sockfd, const std::vector<std::string> &args) {
   const char *promptMessage = "\033[1;32mWelcome \033[1;0m\r\n";
   SendMessage(sockfd, promptMessage);

@@ -10,5 +10,6 @@ public:
     Channel();
     Channel(std::string name);
     void addUser(User);
+    void kickUser(User);
     std::string getName();
 };

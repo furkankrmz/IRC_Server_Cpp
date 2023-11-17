@@ -8,6 +8,7 @@ void commandHandler::initialize() {
     commandHandler::functions.insert(std::pair<std::string,command>("OPER", commandHandler::OPER));
     commandHandler::functions.insert(std::pair<std::string,command>("LIST", commandHandler::LIST));
     commandHandler::functions.insert(std::pair<std::string,command>("JOIN", commandHandler::JOIN));
+    commandHandler::functions.insert(std::pair<std::string,command>("KICK", commandHandler::KICK));
     commandHandler::functions.insert(std::pair<std::string,command>("PRIVMSG", commandHandler::PRIVMSG));
 }
 
@@ -139,6 +140,30 @@ void commandHandler::JOIN(int sockfd, const std::vector<std::string>& args, ft_i
             }
             else
                 irc.JOIN(sockfd, args);
+        }
+        catch(...) {
+            const char *invalidMessage = "\033[1;33mUser not found!\033[1;0m\r\n";
+            irc.SendMessage(sockfd, invalidMessage);
+        }
+    }
+}
+
+void commandHandler::KICK(int sockfd, const std::vector<std::string>& args, ft_irc& irc) {
+    if (args.size() != 3) {
+        const char *invalidMessage =
+            "\033[1;31mIncorrect use of command! Correct usage: KICK <channel> <client>\033[1;0m\r\n";
+        irc.SendMessage(sockfd, invalidMessage);
+        return;
+    }
+    else {
+        try {
+            User usr = irc.findUserBySocket(sockfd);
+            if (!(usr.IsAuthenticated() && usr.GetOper())) {
+                const char *invalidMessage = "\033[1;31mYou are not an operator!\033[1;0m \r\n";
+                irc.SendMessage(sockfd, invalidMessage);
+            }
+            else
+                irc.KICK(sockfd, args);
         }
         catch(...) {
             const char *invalidMessage = "\033[1;33mUser not found!\033[1;0m\r\n";

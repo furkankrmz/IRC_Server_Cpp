@@ -57,6 +57,7 @@ public:
     void OPER(int sockfd, const std::vector<std::string> &args);
     void LIST(int sockfd);
     void JOIN(int sockfd, const std::vector<std::string> &args);
+    void KICK(int sockfd, const std::vector<std::string> &args);
     void PRIVMSG(int connection, const std::vector<std::string>& args);
 };
 
