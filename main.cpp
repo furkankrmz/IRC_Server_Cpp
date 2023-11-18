@@ -82,6 +82,7 @@ int main(int ac, char *av[])
                         character = buffer[i];
                         line.append(character);
                     }
+                    std::cout << "command is: " << line << "#" << std::endl;
                     std::vector<std::string> args = parse(line);
 
                     command.command_handler(fd, args, irc);
