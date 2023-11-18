@@ -12,4 +12,5 @@ public:
     void addUser(User);
     void kickUser(User);
     std::string getName();
+    void SendNotice(std::string);
 };

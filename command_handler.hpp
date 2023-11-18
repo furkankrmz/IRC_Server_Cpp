@@ -12,7 +12,8 @@ class commandHandler {
         static void LIST(int sockfd, const std::vector<std::string>& args, ft_irc& irc);
         static void JOIN(int sockfd, const std::vector<std::string>& args, ft_irc& irc);
         static void KICK(int sockfd, const std::vector<std::string>& args, ft_irc& irc);
-        static void PRIVMSG(int sockfd, const std::vector<std::string>& args,ft_irc&irc);
+        static void NOTICE(int sockfd, const std::vector<std::string>& args, ft_irc& irc);
+        static void PRIVMSG(int sockfd, const std::vector<std::string>& args, ft_irc&irc);
         std::map<std::string, command> functions;
     public:
         void initialize();

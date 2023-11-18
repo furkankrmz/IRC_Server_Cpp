@@ -58,6 +58,7 @@ public:
     void JOIN(int sockfd, const std::vector<std::string> &args);
     void KICK(int sockfd, const std::vector<std::string> &args);
     void PRIVMSG(int connection, const std::vector<std::string>& args);
+    void NOTICE(int sockfd, const std::vector<std::string> &args);
 };
 
 std::vector<std::string> parse(std::string);

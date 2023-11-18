@@ -25,3 +25,11 @@ void Channel::kickUser(User usr) {
 std::string Channel::getName() {
     return (name);
 }
+
+void Channel::SendNotice(std::string message) {
+    std::map<int, User>::iterator it = users.begin();
+    while (it != users.end()) {
+        send(it->first, message.c_str(), strlen(message.c_str()), 0);
+        it++;
+    }
+}

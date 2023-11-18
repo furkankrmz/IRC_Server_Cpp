@@ -352,6 +352,33 @@ void ft_irc::KICK(int sockfd, const std::vector<std::string> &args)
   }
 }
 
+void ft_irc::NOTICE(int sockfd, const std::vector<std::string> &args)
+{
+  std::string target = args[1];
+  std::string message = users.find(sockfd)->second.GetNickname() + ": " + args[2] + "\r\n";
+  if(args[1][0] == '#')
+  {
+    std::string target = args[1].substr(1, (args[1].size() - 1));
+    if (channels.find(target) == channels.end())
+    {
+      const char *message = "\033[1;31mChannel not found\033[1;0m\r\n";
+      send(sockfd, message, strlen(message), 0);
+      return;
+    }
+
+    std::map<std::string, Channel>::iterator it = channels.find(target);
+    try
+    {
+      it->second.SendNotice(message);
+    }
+    catch (...)
+    {
+      const char *message = "\033[1;31mUser not in channel!\033[1;0m\r\n";
+      send(sockfd, message, strlen(message), 0);
+    }
+  }
+}
+
 void ft_irc::USER(int sockfd, const std::vector<std::string> &args)
 {
   std::map<int, User>::iterator it = users.find(sockfd);
