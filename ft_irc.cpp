@@ -377,6 +377,26 @@ void ft_irc::NOTICE(int sockfd, const std::vector<std::string> &args)
       send(sockfd, message, strlen(message), 0);
     }
   }
+  else{
+      std::string nick = args[1];
+      std::string msg = args[2] + "\n";
+      const char *p_message = msg.c_str();
+      try
+      {
+        User target = findUserByNickname(nick);
+        User sender = findUserBySocket(sockfd);
+        std::string senderinfo = sender.GetNickname() + ": ";
+        const char *sndr = senderinfo.c_str();
+        SendMessage(target.GetSocket(), sndr);
+        SendMessage(target.GetSocket(), p_message);
+      }
+      catch (const std::exception &e)
+      {
+        const char *invalidMessage = "\033[1;31mUser not found!\033[1;0m\r\n";
+        SendMessage(sockfd, invalidMessage);
+      }
+  }
+    
 }
 
 void ft_irc::USER(int sockfd, const std::vector<std::string> &args)
