@@ -405,7 +405,8 @@ void ft_irc::USER(int sockfd, const std::vector<std::string> &args)
   it->second.SetUsr(true);
   it->second.SetUsername(args[1]);
   it->second.SetRealname(args[4]);
-  std::string message = "\033[1;32mWelcome to Internet Relay Network " + it->second.GetNickname() + "!" + it->second.GetUsername() + "@127.0.0.1\033[1;0m\r\n";
+  std::string message = printMessage("001", it->second.GetNickname(), "Welcome to Internet Relay Network " + it->second.GetNickname() + "!" + it->second.GetUsername() + "@127.0.0.1");
+  //std::string message = "\033[1;32mWelcome to Internet Relay Network " + it->second.GetNickname() + "!" + it->second.GetUsername() + "@127.0.0.1\033[1;0m\r\n";
   SendMessage(sockfd, message.c_str());
   std::cout << it->second.GetRealname() << std::endl;
 }

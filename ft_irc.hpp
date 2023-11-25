@@ -62,3 +62,4 @@ public:
 };
 
 std::vector<std::string> parse(std::string);
+std::string printMessage(std::string num, std::string nickname, std::string message);

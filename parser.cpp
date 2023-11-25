@@ -41,3 +41,9 @@ std::vector<std::string> parse(std::string line)
   }
   return (args);
 }
+
+std::string printMessage(std::string num, std::string nickname, std::string message) {
+	if (nickname.empty())
+		nickname = "*";
+	return (":plusultra " + num + " " + nickname + " " + message + "\n");
+}
