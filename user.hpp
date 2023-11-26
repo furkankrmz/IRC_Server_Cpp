@@ -21,6 +21,7 @@ public:
     std::string GetNickname();
     void SetRealname(std::string r_name);
     std::string GetRealname();
+    std::string GetPrefix();
     bool IsAuthenticated();
     int GetSocket();
     void SetPass(bool);

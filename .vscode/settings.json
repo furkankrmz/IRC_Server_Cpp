@@ -70,6 +70,10 @@
     "condition_variable": "cpp",
     "csignal": "cpp",
     "deque": "cpp",
-    "list": "cpp"
+    "list": "cpp",
+    "__functional_base": "cpp",
+    "functional": "cpp",
+    "iterator": "cpp",
+    "utility": "cpp"
   }
 }

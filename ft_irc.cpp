@@ -226,15 +226,12 @@ void ft_irc::PRIVMSG(int connection, const std::vector<std::string> &args)
 {
   std::string nick = args[1];
   std::string msg = args[2] + "\n";
-  const char *p_message = msg.c_str();
   try
   {
     User target = findUserByNickname(nick);
     User sender = findUserBySocket(connection);
-    std::string senderinfo = sender.GetNickname() + ": ";
-    const char *sndr = senderinfo.c_str();
-    SendMessage(target.GetSocket(), sndr);
-    SendMessage(target.GetSocket(), p_message);
+    std::string reply = sender.GetPrefix() + " " + args[0] + " " + target.GetNickname() + " :" + msg + "\n";
+    SendMessage(target.GetSocket(), reply.c_str());
   }
   catch (const std::exception &e)
   {
@@ -300,8 +297,11 @@ void ft_irc::JOIN(int sockfd, const std::vector<std::string> &args)
         it->second.addUser(users.find(sockfd)->second);
         std::string msg =
             "\033[1;32mYou succesfully joined to " + args[i] + "\033[1;0m\r\n";
-        const char *message = msg.c_str();
-        send(sockfd, message, strlen(message), 0);
+        //const char *message = msg.c_str();
+        
+        std::map<int, User>::iterator it2 = users.find(sockfd);
+        std::string reply = (it2->second.GetPrefix() + " JOIN " + args[i] + "\n");
+        send(sockfd, reply.c_str(), reply.size(), 0);
       }
       else
       {
@@ -356,7 +356,7 @@ void ft_irc::NOTICE(int sockfd, const std::vector<std::string> &args)
 {
   std::string target = args[1];
   std::string message = users.find(sockfd)->second.GetNickname() + ": " + args[2] + "\r\n";
-  if(args[1][0] == '#')
+  if (args[1][0] == '#')
   {
     std::string target = args[1].substr(1, (args[1].size() - 1));
     if (channels.find(target) == channels.end())
@@ -377,26 +377,26 @@ void ft_irc::NOTICE(int sockfd, const std::vector<std::string> &args)
       send(sockfd, message, strlen(message), 0);
     }
   }
-  else{
-      std::string nick = args[1];
-      std::string msg = args[2] + "\n";
-      const char *p_message = msg.c_str();
-      try
-      {
-        User target = findUserByNickname(nick);
-        User sender = findUserBySocket(sockfd);
-        std::string senderinfo = sender.GetNickname() + ": ";
-        const char *sndr = senderinfo.c_str();
-        SendMessage(target.GetSocket(), sndr);
-        SendMessage(target.GetSocket(), p_message);
-      }
-      catch (const std::exception &e)
-      {
-        const char *invalidMessage = "\033[1;31mUser not found!\033[1;0m\r\n";
-        SendMessage(sockfd, invalidMessage);
-      }
+  else
+  {
+    std::string nick = args[1];
+    std::string msg = args[2] + "\n";
+    const char *p_message = msg.c_str();
+    try
+    {
+      User target = findUserByNickname(nick);
+      User sender = findUserBySocket(sockfd);
+      std::string senderinfo = sender.GetNickname() + ": ";
+      const char *sndr = senderinfo.c_str();
+      SendMessage(target.GetSocket(), sndr);
+      SendMessage(target.GetSocket(), p_message);
+    }
+    catch (const std::exception &e)
+    {
+      const char *invalidMessage = "\033[1;31mUser not found!\033[1;0m\r\n";
+      SendMessage(sockfd, invalidMessage);
+    }
   }
-    
 }
 
 void ft_irc::USER(int sockfd, const std::vector<std::string> &args)
@@ -406,7 +406,7 @@ void ft_irc::USER(int sockfd, const std::vector<std::string> &args)
   it->second.SetUsername(args[1]);
   it->second.SetRealname(args[4]);
   std::string message = printMessage("001", it->second.GetNickname(), "Welcome to Internet Relay Network " + it->second.GetNickname() + "!" + it->second.GetUsername() + "@127.0.0.1");
-  //std::string message = "\033[1;32mWelcome to Internet Relay Network " + it->second.GetNickname() + "!" + it->second.GetUsername() + "@127.0.0.1\033[1;0m\r\n";
+  // std::string message = "\033[1;32mWelcome to Internet Relay Network " + it->second.GetNickname() + "!" + it->second.GetUsername() + "@127.0.0.1\033[1;0m\r\n";
   SendMessage(sockfd, message.c_str());
   std::cout << it->second.GetRealname() << std::endl;
 }

@@ -85,8 +85,7 @@ void commandHandler::HELP(int sockfd, const std::vector<std::string> &args, ft_i
         irc.HELP(sockfd);
 }
 
-void commandHandler::USER(int sockfd, const std::vector<std::string> &args, ft_irc &irc)
-{
+void commandHandler::USER(int sockfd, const std::vector<std::string> &args, ft_irc &irc){
     if (args.size() != 5 || args[2] != "*" || args[3] != "*")
     {
         irc.SendMessage(sockfd, "\033[1;31mIncorrect use of command! Correct usage: USER <username> * * :<realname>\033[1;0m\r\n");
@@ -241,6 +240,7 @@ void commandHandler::PRIVMSG(int sockfd, const std::vector<std::string> &args, f
         const char *invalidMessage =
             "\033[1;31mIncorrect use of command! Correct usage: PRIVMSG <nickname> "
             "<message>\033[1;0m\r\n";
+        
         irc.SendMessage(sockfd, invalidMessage);
         return;
     }
