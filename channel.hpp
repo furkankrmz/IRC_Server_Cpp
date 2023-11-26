@@ -13,4 +13,5 @@ public:
     void kickUser(User);
     std::string getName();
     void SendNotice(std::string);
+    void SendToChannelUsers(std::string sender, std::string message);
 };

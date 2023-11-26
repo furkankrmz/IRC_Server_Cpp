@@ -63,7 +63,20 @@ void commandHandler::NICK(int sockfd, const std::vector<std::string> &args, ft_i
                 irc.SendMessage(sockfd, invalidMessage);
             }
             else
+            {
+                int j = 0;
+                while (args[1][j])
+                {
+                    if (!isalnum(args[1][j]) && args[1][j] != '-' && args[1][j] != '\r')
+                    {
+                        const char *invalidMessage = "\033[1;31m :Erroneous nickname\033[1;0m \r\n";
+                        irc.SendMessage(sockfd, invalidMessage);
+                        return;
+                    }
+                    j++;
+                }
                 irc.NICK(sockfd, args);
+            }
         }
         catch (...)
         {
@@ -85,7 +98,8 @@ void commandHandler::HELP(int sockfd, const std::vector<std::string> &args, ft_i
         irc.HELP(sockfd);
 }
 
-void commandHandler::USER(int sockfd, const std::vector<std::string> &args, ft_irc &irc){
+void commandHandler::USER(int sockfd, const std::vector<std::string> &args, ft_irc &irc)
+{
     if (args.size() != 5 || args[2] != "*" || args[3] != "*")
     {
         irc.SendMessage(sockfd, "\033[1;31mIncorrect use of command! Correct usage: USER <username> * * :<realname>\033[1;0m\r\n");
@@ -240,7 +254,7 @@ void commandHandler::PRIVMSG(int sockfd, const std::vector<std::string> &args, f
         const char *invalidMessage =
             "\033[1;31mIncorrect use of command! Correct usage: PRIVMSG <nickname> "
             "<message>\033[1;0m\r\n";
-        
+
         irc.SendMessage(sockfd, invalidMessage);
         return;
     }
@@ -301,10 +315,13 @@ void commandHandler::command_handler(int sockfd, const std::vector<std::string> 
         return;
     if (!args[0].compare("QUIT") || !args[0].compare("DIE"))
         return;
-    if (commandHandler::functions.find(args[0]) == commandHandler::functions.end())
+    if (!args[0].compare("PING"))
+        irc.SendMessage(sockfd, ":ircserv PONG localhost\r\n");
+    else if (commandHandler::functions.find(args[0]) == commandHandler::functions.end())
     {
         irc.SendMessage(sockfd, "\033[1;31mThis command is not defined!\033[1;0m\r\n");
         return;
     }
-    commandHandler::functions[args[0]](sockfd, args, irc);
+    else
+        commandHandler::functions[args[0]](sockfd, args, irc);
 }

@@ -6,12 +6,12 @@ ft_irc::ft_irc(/* args */)
   password = "";
   operator_password = "kedi172";
   sock_fd = -1;
-  Channel chnl1("linux");
-  Channel chnl2("42");
-  Channel chnl3("itu");
-  channels.insert(std::pair<std::string, Channel>("linux", chnl1));
-  channels.insert(std::pair<std::string, Channel>("42", chnl2));
-  channels.insert(std::pair<std::string, Channel>("itu", chnl3));
+  Channel chnl1("#linux");
+  Channel chnl2("#42");
+  Channel chnl3("#itu");
+  channels.insert(std::pair<std::string, Channel>("#linux", chnl1));
+  channels.insert(std::pair<std::string, Channel>("#42", chnl2));
+  channels.insert(std::pair<std::string, Channel>("#itu", chnl3));
 };
 
 ft_irc::~ft_irc(){};
@@ -222,21 +222,48 @@ void ft_irc::NICK(int connection, const std::vector<std::string> &args)
   }
 }
 
-void ft_irc::PRIVMSG(int connection, const std::vector<std::string> &args)
+void ft_irc::PRIVMSG(int sockfd, const std::vector<std::string> &args)
 {
-  std::string nick = args[1];
+  std::string receiver = args[1];
+  // std::string nick = args[1];
   std::string msg = args[2] + "\n";
-  try
+
+  if (args[1][0] == '#' || args[1][0] == '&' || args[1][0] == '+' || args[1][0] == '!')
   {
-    User target = findUserByNickname(nick);
-    User sender = findUserBySocket(connection);
-    std::string reply = sender.GetPrefix() + " " + args[0] + " " + target.GetNickname() + " :" + msg + "\n";
-    SendMessage(target.GetSocket(), reply.c_str());
+    if (channels.find(args[1]) == channels.end())
+    {
+      const char *message = "\033[1;31mChannel not found\033[1;0m\r\n";
+      send(sockfd, message, strlen(message), 0);
+      return;
+    }
+
+    std::map<std::string, Channel>::iterator it = channels.find(args[1]);
+    try
+    {
+      it->second.SendToChannelUsers(findUserBySocket(sockfd).GetPrefix(), args[2]);
+    }
+    catch (...)
+    {
+      const char *message = "\033[1;31mUser not in channel!\033[1;0m\r\n";
+      send(sockfd, message, strlen(message), 0);
+    }
   }
-  catch (const std::exception &e)
+  else
   {
-    const char *invalidMessage = "\033[1;31mUser not found!\033[1;0m\r\n";
-    SendMessage(connection, invalidMessage);
+    try
+    {
+      User target = findUserByNickname(args[1]);
+      User sender = findUserBySocket(sockfd);
+      std::string reply = sender.GetPrefix() + " " + args[0] + " " + target.GetNickname() + " :" + msg + "\n";
+      SendMessage(target.GetSocket(), reply.c_str());
+    }
+    catch (...)
+    {
+      User sender = findUserBySocket(sockfd);
+      std::string msg = printMessage("401", sender.GetNickname(), args[1] + " :No such nick/channel");
+      // const char *invalidMessage = "\033[1;31mUser not found!\033[1;0m\r\n//";
+      SendMessage(sockfd, msg.c_str());
+    }
   }
 }
 
@@ -297,8 +324,8 @@ void ft_irc::JOIN(int sockfd, const std::vector<std::string> &args)
         it->second.addUser(users.find(sockfd)->second);
         std::string msg =
             "\033[1;32mYou succesfully joined to " + args[i] + "\033[1;0m\r\n";
-        //const char *message = msg.c_str();
-        
+        // const char *message = msg.c_str();
+
         std::map<int, User>::iterator it2 = users.find(sockfd);
         std::string reply = (it2->second.GetPrefix() + " JOIN " + args[i] + "\n");
         send(sockfd, reply.c_str(), reply.size(), 0);
@@ -315,14 +342,13 @@ void ft_irc::JOIN(int sockfd, const std::vector<std::string> &args)
         it->second.addUser(users.find(sockfd)->second);
         msg =
             "\033[1;32mYou succesfully joined to " + args[i] + "\033[1;0m\r\n";
-        const char *message = msg.c_str();
-        send(sockfd, message, strlen(message), 0);
+        std::map<int, User>::iterator it2 = users.find(sockfd);
+        std::string reply = (it2->second.GetPrefix() + " JOIN " + args[i] + "\n");
+        send(sockfd, reply.c_str(), reply.size(), 0);
       }
     }
-    catch (...)
+    catch (const char *message)
     {
-      std::string msg = "\033[1;31mYou are already in channel " + args[i] + "\033[1;0m\r\n";
-      const char *message = msg.c_str();
       send(sockfd, message, strlen(message), 0);
     }
   }
