@@ -12,6 +12,7 @@ public:
     void addUser(User);
     void kickUser(User);
     std::string getName();
+    std::string listUsers();
     void SendNotice(std::string);
     void SendToChannelUsers(std::string sender, std::string message);
 };

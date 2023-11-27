@@ -33,15 +33,29 @@ std::string Channel::getName()
     return (name);
 }
 
+std::string Channel::listUsers()
+{
+    std::string list = ":";
+    std::map<int, User>::iterator it = users.begin();
+    while (it != users.end())
+    {
+        list.append(it->second.GetNickname() + " ");
+        it++;
+    }
+    return (list);
+}
+
 void Channel::SendNotice(std::string message)
 {
     std::map<int, User>::iterator it = users.begin();
     while (it != users.end())
     {
-        send(it->first, message.c_str(), strlen(message.c_str()), 0);
+        std::string reply = "NOTICE " + name + " :" + message + "\n";
+        send(it->first, reply.c_str(), strlen(reply.c_str()), 0);
         it++;
     }
 }
+
 void Channel::SendToChannelUsers(std::string sender, std::string message)
 {
     std::map<int, User>::iterator it = users.begin();
