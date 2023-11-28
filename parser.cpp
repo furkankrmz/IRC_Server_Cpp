@@ -7,7 +7,7 @@ std::vector<std::string> parse(std::string line)
   size_t length = line.find_first_of("\r\n");
   std::vector<std::string> args;
 
-  while (iterator < length)
+  while (iterator < length && iterator < line.size())
   {
     while (line[iterator] == ' ' || line[iterator] == '\t')
     {

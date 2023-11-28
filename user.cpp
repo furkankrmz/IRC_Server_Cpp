@@ -9,6 +9,7 @@ User::User() {
   this->nickname = "";
   this->username = "";
   this->realname = "";
+  this->uncomplatedcommand = "";
 }
 User::User(int fd) {
   sock_fd = fd;
@@ -19,7 +20,11 @@ User::User(int fd) {
   nickname = "";
   username = "";
   realname = "";
+  uncomplatedcommand = "";
 }
+void User::clearCommand() {this->uncomplatedcommand = ""; }
+void User::AppendCommand(std::string command){this->uncomplatedcommand.append(command);}
+std::string User::GetCommand(){return this->uncomplatedcommand;}
 void User::SetNickname(std::string name) { this->nickname = name; }
 std::string User::GetNickname() { return this->nickname; }
 void User::SetUsername(std::string name) { this->username = name; }

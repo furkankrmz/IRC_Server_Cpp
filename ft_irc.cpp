@@ -454,50 +454,6 @@ void ft_irc::NOTICE(int sockfd, const std::vector<std::string> &args)
       SendMessage(sockfd, msg.c_str());
     }
   }
-/* 
-  std::string target = args[1];
-  std::string message = users.find(sockfd)->second.GetNickname() + ": " + args[2] + "\r\n";
-  if (args[1][0] == '#')
-  {
-    std::string target = args[1].substr(1, (args[1].size() - 1));
-    if (channels.find(target) == channels.end())
-    {
-      const char *message = "\033[1;31mChannel not found\033[1;0m\r\n";
-      send(sockfd, message, strlen(message), 0);
-      return;
-    }
-
-    std::map<std::string, Channel>::iterator it = channels.find(target);
-    try
-    {
-      it->second.SendNotice(message);
-    }
-    catch (...)
-    {
-      const char *message = "\033[1;31mUser not in channel!\033[1;0m\r\n";
-      send(sockfd, message, strlen(message), 0);
-    }
-  }
-  else
-  {
-    std::string nick = args[1];
-    std::string msg = args[2] + "\n";
-    const char *p_message = msg.c_str();
-    try
-    {
-      User target = findUserByNickname(nick);
-      User sender = findUserBySocket(sockfd);
-      std::string senderinfo = sender.GetNickname() + ": ";
-      const char *sndr = senderinfo.c_str();
-      SendMessage(target.GetSocket(), sndr);
-      SendMessage(target.GetSocket(), p_message);
-    }
-    catch (const std::exception &e)
-    {
-      const char *invalidMessage = "\033[1;31mUser not found!\033[1;0m\r\n";
-      SendMessage(sockfd, invalidMessage);
-    }
-  } */
 }
 
 void ft_irc::USER(int sockfd, const std::vector<std::string> &args)
@@ -509,5 +465,23 @@ void ft_irc::USER(int sockfd, const std::vector<std::string> &args)
   std::string message = printMessage("001", it->second.GetNickname(), "Welcome to Internet Relay Network " + it->second.GetNickname() + "!" + it->second.GetUsername() + "@127.0.0.1");
   // std::string message = "\033[1;32mWelcome to Internet Relay Network " + it->second.GetNickname() + "!" + it->second.GetUsername() + "@127.0.0.1\033[1;0m\r\n";
   SendMessage(sockfd, message.c_str());
-  std::cout << it->second.GetRealname() << std::endl;
+}
+std::string ft_irc::AppendUserCommand(std::string command, int fd)
+{
+  std::string tmp;
+  User &usr = users.find(fd)->second;
+  usr.AppendCommand(command);
+  if(command.find_first_of("\r\n") > command.size() - 1)
+  {
+    return ("uncompleted");
+  }
+  else {
+    tmp = usr.GetCommand();
+    usr.clearCommand();
+    return tmp;
+  }
+}
+std::string ft_irc::GetUserCommand(int fd){
+    User usr = users.find(fd)->second;
+    return usr.GetCommand();
 }

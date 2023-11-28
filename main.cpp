@@ -78,13 +78,22 @@ int main(int ac, char *av[])
                     int i = -1;
                     std::string line;
                     std::string character;
-                    while (buffer[++i] != '\0') {
+                    while (buffer[++i] != '\0')
+                    {
                         character = buffer[i];
                         line.append(character);
                     }
-                    std::cout << "command is: " << line << "#" << std::endl;
-                    std::vector<std::string> args = parse(line);
-
+                    if (strncmp(buffer, "uncompleted", 12) == 0)
+                    {
+                        irc.SendMessage(fd, "\033[1;31mThis command is not defined!\033[1;0m\r\n");
+                        continue ;
+                    } 
+                    std::string yeter = irc.AppendUserCommand(line, fd);
+                    if (yeter == "uncompleted")
+                    {
+                        continue;
+                    }
+                    std::vector<std::string> args = parse(yeter);
                     command.command_handler(fd, args, irc);
                     if (strncmp(buffer, "QUIT", 4) == 0)
                     {
@@ -92,19 +101,21 @@ int main(int ac, char *av[])
                         close(fd);
                         irc.removeUser(fd);
                         FD_CLR(fd, &readfds); // Remove the closed socket from the set
-                    }
-                    if (strncmp(buffer, "DIE", 3) == 0) {
+                    } 
+                    if (strncmp(buffer, "DIE", 3) == 0)
+                    {
                         if (!irc.findUserBySocket(fd).GetOper())
-                            irc.SendMessage(fd,"\033[1;31mYou are not authorized!\033[1;0m\r\n");
-                        else{
+                            irc.SendMessage(fd, "\033[1;31mYou are not authorized!\033[1;0m\r\n");
+                        else
+                        {
                             for (int fd = irc.GetSockFD(); fd <= maxfd; ++fd)
                                 if (FD_ISSET(fd, &readfds))
                                     close(fd);
                             close(irc.GetSockFD());
                             std::cout << "\033[1;31mShutting down!\033[1;0m\r\n";
-                            irc.SendMessage(fd,"\033[1;31mShutting down!\033[1;0m\r\n");
+                            irc.SendMessage(fd, "\033[1;31mShutting down!\033[1;0m\r\n");
                             return 0;
-                            }
+                        }
                     }
                 }
             }

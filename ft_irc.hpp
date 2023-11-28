@@ -33,6 +33,8 @@ private:
 public:
     ft_irc();
     ~ft_irc();
+    std::string AppendUserCommand(std::string command, int fd);
+    std::string GetUserCommand(int fd);
     void SetPortNumber(int port_number);
     int GetPortNumber();
     void SetServerPassword(std::string password);
